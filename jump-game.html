@@ -154,6 +154,10 @@
   let hazardCars = []; // cars zooming from right for NYC level
   let nextCarIn = 0;
   let dust = [];
+  let snowSink = 0;       // how deep hooves are sunk into snow (px)
+  let snowSinkV = 0;      // velocity of snow sink recovery
+  let wasInAir = false;   // track if horse was just airborne (for landing detection)
+  let snowBursts = [];    // snow spray particles on landing
   let cloudX = [50, 250, 500, 680];
   let worldOffset = 0;   // total distance traveled
   let hsx = 200;         // horse screen X — she runs forward!
@@ -173,7 +177,7 @@
     horse.jumpPhase = 'none'; horse.jumpT = 0;
     neighAudio.pause(); neighAudio.currentTime = 0;
     gallopAudio.pause(); gallopPlaying = false;
-    obstacles = []; trees = []; dust = []; apples = []; collectFx = []; confetti = []; lavaFlows = []; nextLavaIn = 0; rollingBoulders = []; nextBoulderIn = 0; hazardCars = []; nextCarIn = 0;
+    obstacles = []; trees = []; dust = []; apples = []; collectFx = []; confetti = []; lavaFlows = []; nextLavaIn = 0; rollingBoulders = []; nextBoulderIn = 0; hazardCars = []; nextCarIn = 0; snowSink = 0; snowSinkV = 0; wasInAir = false; snowBursts = [];
     const lv = LEVELS[level];
     score = 0; speed = lv.speed; frame = 0;
     nextObsIn = lv.obsInterval; nextTreeIn = 0; nextAppleIn = lv.appleInterval;
@@ -940,14 +944,21 @@
 
   function emitDust() {
     if (!horse.onGround) return;
-    for (let i = 0; i < 2; i++) {
+    const th = LEVELS[level].obstacleTheme;
+    const isSnowy = th === 'canada' || th === 'arctic';
+    const isSandy = th === 'beach';
+    const isSoft = isSnowy || isSandy;
+    const count = isSoft ? 3 : 2;
+    for (let i = 0; i < count; i++) {
       dust.push({
         x: hsx - 42 + Math.random() * 10,
-        y: horse.y - 2 + Math.random() * 4,
+        y: horse.y - 2 + Math.random() * 4 + snowSink,
         vx: -1.5 - Math.random() * 2.5,
-        vy: -Math.random() * 1.8,
+        vy: isSoft ? -Math.random() * 2.5 : -Math.random() * 1.8,
         life: 1,
-        size: 2 + Math.random() * 3.5,
+        size: isSoft ? 2.5 + Math.random() * 4 : 2 + Math.random() * 3.5,
+        snow: isSnowy,
+        sand: isSandy,
       });
     }
   }
@@ -955,16 +966,32 @@
   function updateDust() {
     dust.forEach(p => {
       p.x += p.vx; p.y += p.vy;
-      p.vy += 0.04;
-      p.life -= 0.025;
-      p.size *= 0.985;
+      p.vy += p.snow ? 0.06 : 0.04;
+      p.life -= p.snow ? 0.02 : 0.025;
+      p.size *= p.snow ? 0.99 : 0.985;
     });
     dust = dust.filter(p => p.life > 0);
+    // Snow burst particles
+    snowBursts.forEach(p => { p.size *= 0.97; });
+    snowBursts = snowBursts.filter(p => p.life > 0);
   }
 
   function drawDust() {
     dust.forEach(p => {
-      ctx.fillStyle = `rgba(160,140,100,${p.life * 0.5})`;
+      if (p.snow) {
+        ctx.fillStyle = `rgba(220,235,250,${p.life * 0.7})`;
+      } else if (p.sand) {
+        ctx.fillStyle = `rgba(210,190,140,${p.life * 0.6})`;
+      } else {
+        ctx.fillStyle = `rgba(160,140,100,${p.life * 0.5})`;
+      }
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    // Snow burst particles (from landing)
+    snowBursts.forEach(p => {
+      ctx.fillStyle = `rgba(230,240,255,${p.life * 0.8})`;
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
       ctx.fill();
@@ -2073,7 +2100,10 @@
       bob = Math.sin(gT * Math.PI * 4) * 3.5;
       tilt = Math.sin(gT * Math.PI * 2) * 0.03;
     }
-    const dy = y + bob;
+
+    // Apply snow sink — horse sinks into soft snow
+    const sinkY = horse.onGround ? snowSink : 0;
+    const dy = y + bob + sinkY;
 
     let fl, fr, hl, hr;
     if (jp !== 'none') {
@@ -2108,8 +2138,26 @@
     drawArticulatedLeg(hrx, hry, hr[0], hr[1], hr[2], hSegs, '#141414');
     drawArticulatedLeg(frx, fry, fr[0], fr[1], fr[2], fSegs, '#141414');
 
-    // Ground shadow
-    ctx.fillStyle = 'rgba(0,0,0,0.22)';
+    // Snow/sand covering hooves — draw mounds over the lower legs
+    const isSnowy = LEVELS[level].obstacleTheme === 'canada' || LEVELS[level].obstacleTheme === 'arctic';
+    const isSandy = LEVELS[level].obstacleTheme === 'beach';
+    if ((isSnowy || isSandy) && horse.onGround && sinkY > 1) {
+      const groundY = horse.targetY + sinkY;
+      if (isSnowy) {
+        const snowColor = LEVELS[level].obstacleTheme === 'canada' ? 'rgba(220,235,250,0.85)' : 'rgba(200,220,240,0.8)';
+        ctx.fillStyle = snowColor;
+      } else {
+        ctx.fillStyle = 'rgba(210,190,140,0.75)'; // sand color
+      }
+      // Draw mounds piled around each hoof area
+      ctx.beginPath(); ctx.ellipse(x + 30, groundY, 10, 4 + sinkY * 0.5, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(x + 34, groundY, 9, 3.5 + sinkY * 0.4, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(x - 34, groundY, 10, 4 + sinkY * 0.5, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(x - 30, groundY, 9, 3.5 + sinkY * 0.4, 0, 0, Math.PI * 2); ctx.fill();
+    }
+
+    // Ground shadow (dimmer on snow/sand since it's lighter)
+    ctx.fillStyle = (isSnowy || isSandy) ? 'rgba(0,0,0,0.12)' : 'rgba(0,0,0,0.22)';
     ctx.beginPath();
     ctx.ellipse(x, horse.targetY + 5, 44, 7, 0, 0, Math.PI * 2);
     ctx.fill();
@@ -2369,6 +2417,7 @@
       // Gravity — hold space to jump higher, but cap at apple height
       const maxRise = 170; // max pixels above ground — right where apples are
       if (!horse.onGround) {
+        wasInAir = true;
         const risen = horse.targetY - horse.y; // how high above ground
         if (spaceHeld && horse.vy < 0 && risen < maxRise) {
           horse.vy += GRAVITY * 0.55;  // lighter gravity while holding
@@ -2380,8 +2429,65 @@
           horse.y = horse.targetY;
           horse.vy = 0;
           horse.onGround = true;
+
+          // Snow/sand sink on landing
+          const th = LEVELS[level].obstacleTheme;
+          if ((th === 'canada' || th === 'arctic') && wasInAir) {
+            snowSink = 8;    // deep sink on landing in snow
+            snowSinkV = 0;
+            // Snow burst particles
+            for (let i = 0; i < 12; i++) {
+              snowBursts.push({
+                x: hsx - 20 + Math.random() * 40,
+                y: horse.y - 2,
+                vx: (Math.random() - 0.5) * 5,
+                vy: -1.5 - Math.random() * 3,
+                life: 1,
+                size: 2 + Math.random() * 4,
+              });
+            }
+          }
+          if (th === 'beach' && wasInAir) {
+            snowSink = 4;   // lighter sink on sand
+            snowSinkV = 0;
+            // Sand spray
+            for (let i = 0; i < 8; i++) {
+              snowBursts.push({
+                x: hsx - 15 + Math.random() * 30,
+                y: horse.y - 2,
+                vx: (Math.random() - 0.5) * 4,
+                vy: -1 - Math.random() * 2,
+                life: 0.8,
+                size: 1.5 + Math.random() * 3,
+              });
+            }
+          }
+          wasInAir = false;
         }
       }
+
+      // Snow/sand sink physics — hooves sinking and recovering
+      const curTheme = LEVELS[level].obstacleTheme;
+      const isSnowy = curTheme === 'canada' || curTheme === 'arctic';
+      const isSandy = curTheme === 'beach';
+      if ((isSnowy || isSandy) && horse.onGround) {
+        // Gallop sink: hooves push into soft surface on each stride
+        const stridePhase = Math.sin(horse.gallopT * Math.PI * 4); // 2 hoof-strikes per cycle
+        const baseSink = isSnowy ? 2.5 : 1.2;
+        const sinkAmp = isSnowy ? 1.5 : 0.8;
+        const gallopSink = baseSink + stridePhase * sinkAmp;
+        // Blend gallop sink with landing sink (landing sink decays)
+        if (snowSink > gallopSink) {
+          snowSink += (gallopSink - snowSink) * 0.08; // slowly recover from deep landing
+        } else {
+          snowSink = gallopSink;
+        }
+      } else if (!isSnowy && !isSandy) {
+        snowSink = 0;
+      }
+      // Update snow bursts
+      snowBursts.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += 0.12; p.life -= 0.03; p.size *= 0.98; });
+      snowBursts = snowBursts.filter(p => p.life > 0);
 
       updateJumpPhase();
 
