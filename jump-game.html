@@ -2325,7 +2325,7 @@
 
   function selectHorseAnim(jp, moving) {
     if (state === 'dead') return 'idle';  // no death anim, just freeze
-    if (horse.rearing) return 'rear';     // victory rear on hind legs
+    if (horse.rearing) return 'rear';     // victory rear — uses idle frame + rotation
     if (jp !== 'none') return 'jump';
     if (moving) {
       // Use trot for slower levels (1-2), gallop for faster
@@ -2354,25 +2354,14 @@
 
     const animName = selectHorseAnim(jp, moving);
     const isRearing = animName === 'rear';
-    // For rearing, use jump strip frames
-    const anim = isRearing ? SPRITE.anims['jump'] : SPRITE.anims[animName];
+    // For rearing, use the gallop strip (frame 0 = legs extended, looks great rotated)
+    const anim = isRearing ? SPRITE.anims['gallop'] : SPRITE.anims[animName];
 
     // Determine frame index
     let frameIdx;
     if (isRearing) {
-      // Rear animation: rise up (0→1.8s), hold at peak, settle back (1.8→2.2s)
-      const rt = horse.rearT;
-      if (rt < 0.3) {
-        // Rising: frames 0→3 (gather to launch)
-        frameIdx = Math.min(3, Math.floor((rt / 0.3) * 4));
-      } else if (rt < 1.8) {
-        // Holding at peak: alternate frames 3-4 for a lively rear
-        frameIdx = 3 + Math.floor(((rt - 0.3) * 3) % 2);
-      } else {
-        // Settling back down: frames 3→0
-        const settleT = (rt - 1.8) / 0.4;
-        frameIdx = Math.max(0, 3 - Math.floor(settleT * 4));
-      }
+      // Use gallop frame 0 (legs extended back) — rotation makes it look like a rear
+      frameIdx = 0;
     } else if (animName === 'jump') {
       frameIdx = getJumpFrame(jp, jt, anim.frames);
     } else if (animName === 'gallop' || animName === 'trot') {
@@ -2409,23 +2398,28 @@
     ctx.save();
 
     if (isRearing) {
-      // Rotate sprite backward (clockwise from hind hooves) to simulate rearing
+      // Rotate sprite backward to simulate rearing up on hind legs
+      // The horse faces RIGHT, so we rotate counter-clockwise (negative angle)
+      // pivoting from the hind hooves (back-right of the sprite on screen)
       const rt = horse.rearT;
       let rearAngle;
-      if (rt < 0.3) {
-        // Rising up: 0 → -35 degrees (lean back)
-        rearAngle = -(rt / 0.3) * 35;
+      if (rt < 0.35) {
+        // Rising up: 0 → -55 degrees with easeOut
+        const t = rt / 0.35;
+        const ease = 1 - (1 - t) * (1 - t); // easeOutQuad
+        rearAngle = -55 * ease;
       } else if (rt < 1.8) {
-        // Holding: slight sway between -33 and -37 degrees
-        rearAngle = -35 + Math.sin((rt - 0.3) * 5) * 2;
+        // Holding at peak: dramatic rear with lively sway
+        rearAngle = -55 + Math.sin((rt - 0.35) * 4) * 3;
       } else {
-        // Settling: -35 → 0 degrees
-        const settleT = (rt - 1.8) / 0.4;
-        rearAngle = -35 * (1 - settleT);
+        // Settling back down: -55 → 0 with easeIn
+        const t = Math.min(1, (rt - 1.8) / 0.4);
+        const ease = t * t; // easeInQuad
+        rearAngle = -55 * (1 - ease);
       }
-      // Pivot from the hind hooves (bottom-right area of sprite)
-      const pivotX = x + dw * 0.15;  // hind hooves position
-      const pivotY = dy;              // ground level
+      // Pivot point: hind hooves — right side of sprite, at ground level
+      const pivotX = x + dw * 0.2;
+      const pivotY = dy;
       ctx.translate(pivotX, pivotY);
       ctx.rotate(rearAngle * Math.PI / 180);
       ctx.translate(-pivotX, -pivotY);
