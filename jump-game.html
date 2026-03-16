@@ -2385,7 +2385,8 @@
       frameIdx = getJumpFrame(jp, jt, anim.frames);
     } else if (animName === 'gallop' || animName === 'trot') {
       // Sync directly to gallopT for perfect audio sync
-      frameIdx = Math.floor(gT * anim.frames) % anim.frames;
+      // Use half-speed for 12-frame animations: full cycle takes 2 strides
+      frameIdx = Math.floor(gT * anim.frames * 0.5) % anim.frames;
     } else {
       // Idle: use timer-based animation
       spriteAnim.play(animName);
