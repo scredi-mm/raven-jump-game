@@ -2402,10 +2402,7 @@
       return cycle < 5 ? 'graze' : 'idle';
     }
     if (jp !== 'none') return 'jump';
-    if (moving) {
-      // Use trot for slower levels (1-2), gallop for faster
-      return speed < 3.5 ? 'trot' : 'gallop';
-    }
+    if (moving) return 'gallop';
     return 'idle';
   }
 
