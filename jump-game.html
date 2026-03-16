@@ -722,44 +722,57 @@
       const streamBot = groundY - 2;
       const streamH = streamBot - streamTop;
 
-      // Draw the flowing lava stream (wider at bottom, narrow at top)
-      ctx.save();
-      for (let seg = 0; seg < 12; seg++) {
-        const frac = seg / 12;
-        const nextFrac = (seg + 1) / 12;
-        const y1 = streamTop + frac * streamH;
-        const y2 = streamTop + nextFrac * streamH;
-        // Width grows from narrow (2px) at peak to wide at pool
-        const w1 = 2 + frac * frac * 10;
-        const w2 = 2 + nextFrac * nextFrac * 10;
-        // Horizontal wobble using sine
-        const wx1 = Math.sin(frac * 3 + t * 0.5) * lv.wobble * frac;
-        const wx2 = Math.sin(nextFrac * 3 + t * 0.5) * lv.wobble * nextFrac;
-        // Color gets brighter toward bottom (hotter near pool)
-        const brightness = Math.floor(60 + frac * 140);
-        ctx.fillStyle = `rgb(255,${brightness},0)`;
-        ctx.beginPath();
-        ctx.moveTo(poolCX + wx1 - w1, y1);
-        ctx.lineTo(poolCX + wx1 + w1, y1);
-        ctx.lineTo(poolCX + wx2 + w2, y2);
-        ctx.lineTo(poolCX + wx2 - w2, y2);
-        ctx.closePath();
-        ctx.fill();
+      // Helper: build a curvy path for the stream at a given width
+      function streamPath(widthMul) {
+        const pts = [];
+        for (let i = 0; i <= 16; i++) {
+          const frac = i / 16;
+          const y = streamTop + frac * streamH;
+          const wx = Math.sin(frac * 3 + t * 0.5) * lv.wobble * frac;
+          const w = (1.5 + frac * frac * 9) * widthMul;
+          pts.push({ x: poolCX + wx, y, w });
+        }
+        return pts;
       }
 
-      // Bright center line of the stream
-      ctx.strokeStyle = `rgba(255,220,50,0.5)`;
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(poolCX, streamTop + 10);
-      for (let i = 1; i <= 10; i++) {
-        const frac = i / 10;
-        const y = streamTop + frac * streamH;
-        const wx = Math.sin(frac * 3 + t * 0.5) * lv.wobble * frac;
-        ctx.lineTo(poolCX + wx, y);
+      // Outer glow (wide, soft)
+      const glowPts = streamPath(2.5);
+      ctx.lineWidth = 1;
+      for (let i = 0; i < glowPts.length - 1; i++) {
+        const p = glowPts[i], n = glowPts[i+1];
+        const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.w);
+        g.addColorStop(0, 'rgba(255,80,0,0.25)');
+        g.addColorStop(1, 'rgba(255,30,0,0)');
+        ctx.fillStyle = g;
+        ctx.fillRect(p.x - p.w, p.y, p.w * 2, n.y - p.y + 1);
       }
-      ctx.stroke();
-      ctx.restore();
+
+      // Dark red outer layer (like pool edge)
+      const outerPts = streamPath(1.0);
+      ctx.fillStyle = '#dd2200';
+      ctx.beginPath();
+      ctx.moveTo(outerPts[0].x - outerPts[0].w, outerPts[0].y);
+      for (const p of outerPts) ctx.lineTo(p.x - p.w, p.y);
+      for (let i = outerPts.length - 1; i >= 0; i--) ctx.lineTo(outerPts[i].x + outerPts[i].w, outerPts[i].y);
+      ctx.closePath(); ctx.fill();
+
+      // Bright orange middle layer
+      const midPts = streamPath(0.65);
+      ctx.fillStyle = '#ff6600';
+      ctx.beginPath();
+      ctx.moveTo(midPts[0].x - midPts[0].w, midPts[0].y);
+      for (const p of midPts) ctx.lineTo(p.x - p.w, p.y);
+      for (let i = midPts.length - 1; i >= 0; i--) ctx.lineTo(midPts[i].x + midPts[i].w, midPts[i].y);
+      ctx.closePath(); ctx.fill();
+
+      // Yellow-hot core
+      const corePts = streamPath(0.3);
+      ctx.fillStyle = '#ffcc22';
+      ctx.beginPath();
+      ctx.moveTo(corePts[0].x - corePts[0].w, corePts[0].y);
+      for (const p of corePts) ctx.lineTo(p.x - p.w, p.y);
+      for (let i = corePts.length - 1; i >= 0; i--) ctx.lineTo(corePts[i].x + corePts[i].w, corePts[i].y);
+      ctx.closePath(); ctx.fill();
 
       // ── Glow at the source (crater) ──
       const craterGlow = ctx.createRadialGradient(poolCX, streamTop, 2, poolCX, streamTop, 20);
