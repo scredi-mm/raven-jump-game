@@ -142,7 +142,7 @@
     const snd = new Audio(CRUNCH_SRC);
     // Slightly faster playback on combos — makes it feel snappier
     snd.playbackRate = 1 + comboCount * 0.08;
-    snd.volume = Math.min(1, 0.7 + comboCount * 0.06);
+    snd.volume = Math.min(0.5, 0.3 + comboCount * 0.04);
     snd.play().catch(() => {});
   }
 
