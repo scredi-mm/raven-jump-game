@@ -191,10 +191,10 @@
       return;
     }
     if (state !== 'playing') return;
-    if (e.code === 'ArrowUp' && horse.onGround && horse.lane === 0) {
+    if (e.code === 'ArrowUp' && horse.lane === 0) {
       horse.lane = 1; horse.targetY = UPPER_Y;
     }
-    if (e.code === 'ArrowDown' && horse.onGround && horse.lane === 1) {
+    if (e.code === 'ArrowDown' && horse.lane === 1) {
       horse.lane = 0; horse.targetY = LOWER_Y;
     }
     if (e.code === 'ArrowUp' || e.code === 'ArrowDown') e.preventDefault();
