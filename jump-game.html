@@ -2366,13 +2366,19 @@
 
     const animName = selectHorseAnim(jp, moving);
     const isRearing = animName === 'rear';
-    // For rearing, use the gallop strip (frame 0 = legs extended, looks great rotated)
-    const anim = isRearing ? SPRITE.anims['gallop'] : SPRITE.anims[animName];
+    const isGrazing = animName === 'graze';
+    // For rearing, use gallop frame; for grazing, use idle frame + forward tilt
+    const anim = isRearing ? SPRITE.anims['gallop']
+               : isGrazing ? SPRITE.anims['idle']
+               : SPRITE.anims[animName];
 
     // Determine frame index
     let frameIdx;
     if (isRearing) {
       // Use gallop frame 0 (legs extended back) — rotation makes it look like a rear
+      frameIdx = 0;
+    } else if (isGrazing) {
+      // Use idle frame 0 (standing) — rotation will tilt head down to the grass
       frameIdx = 0;
     } else if (animName === 'jump') {
       frameIdx = getJumpFrame(jp, jt, anim.frames);
@@ -2437,6 +2443,36 @@
       // Negative = counter-clockwise = right side (head) goes UP in canvas coords
       ctx.rotate(-rearAngle * Math.PI / 180);
       ctx.translate(-pivotX, -pivotY);
+    }
+
+    if (isGrazing) {
+      // Tilt horse forward so head dips down to the grass patch
+      // Pivot from front hooves (RIGHT side of sprite, at ground)
+      // Positive rotation = clockwise = head (right side) dips DOWN
+      const cycle = grazeTimer % 7;
+      let grazeAngle;
+      if (cycle < 0.4) {
+        // Dipping head down: 0 → 20 degrees
+        const t = cycle / 0.4;
+        const ease = 1 - (1 - t) * (1 - t);
+        grazeAngle = 20 * ease;
+      } else if (cycle < 4.6) {
+        // Grazing: hold with tiny nibble motion
+        grazeAngle = 20 + Math.sin(cycle * 3) * 1.5;
+      } else if (cycle < 5.0) {
+        // Lifting head back up: 20 → 0 degrees
+        const t = (cycle - 4.6) / 0.4;
+        grazeAngle = 20 * (1 - t);
+      } else {
+        // Head is up (idle period)
+        grazeAngle = 0;
+      }
+      // Pivot from front hooves — right side of sprite at ground level
+      const pivotGX = dx + dw * 0.75;
+      const pivotGY = dy;
+      ctx.translate(pivotGX, pivotGY);
+      ctx.rotate(grazeAngle * Math.PI / 180);
+      ctx.translate(-pivotGX, -pivotGY);
     }
 
     if (SPRITE.flipX) {
