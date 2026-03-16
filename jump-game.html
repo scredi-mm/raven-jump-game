@@ -28,7 +28,7 @@
 </head>
 <body>
   <canvas id="c" width="800" height="380"></canvas>
-  <div id="hint">SPACE = jump &nbsp;|&nbsp; ↑ / ↓ = switch path &nbsp;|&nbsp; 1 = Easy &nbsp;|&nbsp; 2 = Normal &nbsp;|&nbsp; C = fullscreen &nbsp;|&nbsp; B = exit</div>
+  <div id="hint">SPACE = jump &nbsp;|&nbsp; ↑ / ↓ = switch path &nbsp;|&nbsp; 1-4 = pick level &nbsp;|&nbsp; C = fullscreen &nbsp;|&nbsp; B = exit</div>
   <script>
   const canvas = document.getElementById('c');
   const ctx = canvas.getContext('2d');
@@ -95,8 +95,22 @@
   let stateTime = 0; // timestamp when state changed (for death buffer)
   let level = 1;
   const LEVELS = {
-    1: { speed: 3, obsInterval: 130, appleInterval: 50, smallOnly: true, label: 'Level 1', finishAt: 4000 },
-    2: { speed: 4, obsInterval: 90,  appleInterval: 30, smallOnly: false, label: 'Level 2', finishAt: 6000 },
+    1: { speed: 3, obsInterval: 130, appleInterval: 50, smallOnly: true, label: 'Level 1', finishAt: 4000,
+         sky: ['#1e3c64','#6aaed6','#b8d8ee'], mountains: ['#7a88a0','#556878'], snow: '#eef2f8',
+         ground: ['#9a8560','#7a6040','#3a2010'], ledge: '#4a4035', trail: '#c0a880', pebble: '#8a7860',
+         cloudAlpha: 0.8, theme: 'Mountain Morning' },
+    2: { speed: 3.5, obsInterval: 110, appleInterval: 45, smallOnly: true, label: 'Level 2', finishAt: 5000,
+         sky: ['#ff7b00','#ffb347','#ffe0a0'], mountains: ['#5a3a2a','#3a2518'], snow: '#ffddaa',
+         ground: ['#8a6530','#6a4520','#2a1505'], ledge: '#3a2a1a', trail: '#d0a060', pebble: '#7a5830',
+         cloudAlpha: 0.5, theme: 'Sunset Canyon' },
+    3: { speed: 4, obsInterval: 90,  appleInterval: 35, smallOnly: false, label: 'Level 3', finishAt: 6000,
+         sky: ['#0a1628','#1a3050','#2a4a6a'], mountains: ['#1a2a3a','#0e1a28'], snow: '#aaccee',
+         ground: ['#4a5060','#3a3a45','#1a1520'], ledge: '#2a2530', trail: '#8888aa', pebble: '#5a5a70',
+         cloudAlpha: 0.3, theme: 'Moonlit Ridge' },
+    4: { speed: 4.5, obsInterval: 75, appleInterval: 30, smallOnly: false, label: 'Level 4', finishAt: 7000,
+         sky: ['#2a0a2a','#5a1a4a','#aa3355'], mountains: ['#3a1a2a','#220a18'], snow: '#ff8888',
+         ground: ['#5a2a20','#3a1a10','#1a0a05'], ledge: '#2a1510', trail: '#aa6655', pebble: '#6a3a2a',
+         cloudAlpha: 0.2, theme: 'Volcanic Peak' },
   };
   let score = 0, speed = 3, frame = 0;
   localStorage.setItem('ravenHighScore', '19');
@@ -149,20 +163,17 @@
       // Space to restart after death — but only after 1 second buffer
       if (state === 'dead' && Date.now() - stateTime > 1000) { state = 'waiting'; return; }
     }
-    if (e.code === 'Digit1' && (state === 'waiting' || state === 'dead')) {
-      level = 1; reset(); return;
-    }
-    if (e.code === 'Digit2' && (state === 'waiting' || state === 'dead')) {
-      level = 2; reset(); return;
+    if ((state === 'waiting' || state === 'dead') && ['Digit1','Digit2','Digit3','Digit4'].includes(e.code)) {
+      level = parseInt(e.code.charAt(5)); reset(); return;
     }
     if ((e.code === 'Enter' || e.code === 'Space') && state === 'won') {
-      if (level === 1) {
-        // Advance to level 2 — keep the apple score!
+      if (level < 4) {
+        // Advance to next level — keep the apple score!
         const keptScore = score;
-        level = 2; reset();
+        level++; reset();
         score = keptScore;
       } else {
-        // Beat the whole game! Go back to menu
+        // Beat all 4 levels! Go back to menu
         state = 'waiting';
       }
       return;
@@ -224,10 +235,11 @@
   // ── Background ─────────────────────────────────────────────────────────────
 
   function drawSky() {
+    const lv = LEVELS[level];
     const g = ctx.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, '#1e3c64');
-    g.addColorStop(0.5, '#6aaed6');
-    g.addColorStop(1, '#b8d8ee');
+    g.addColorStop(0, lv.sky[0]);
+    g.addColorStop(0.5, lv.sky[1]);
+    g.addColorStop(1, lv.sky[2]);
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, W, H);
   }
@@ -235,7 +247,7 @@
   function drawClouds() {
     cloudX = cloudX.map((cx, i) => {
       const cy = 28 + i * 16, w = 70 + i * 20;
-      ctx.fillStyle = 'rgba(255,255,255,0.8)';
+      ctx.fillStyle = `rgba(255,255,255,${LEVELS[level].cloudAlpha})`;
       ctx.beginPath();
       [[0,0,w*0.3],[w*0.25,-8,w*0.28],[w*0.5,0,w*0.3],[w*0.75,4,w*0.22]]
         .forEach(([dx,dy,r]) => ctx.arc(cx+dx, cy+dy, r, 0, Math.PI*2));
@@ -247,19 +259,20 @@
   let mOff = 0;
   function drawMountains() {
     mOff = (mOff + speed * 0.04) % W;
+    const lv = LEVELS[level];
     // Far peaks
     const far = [[0,185],[50,95],[110,145],[200,70],[300,120],[400,50],[490,110],[600,40],[700,100],[800,70],[800,H],[0,H]];
-    ctx.fillStyle = '#7a88a0';
+    ctx.fillStyle = lv.mountains[0];
     drawPoly(far, -mOff*0.3); drawPoly(far, W-mOff*0.3);
     // Snow caps
-    ctx.fillStyle = '#eef2f8';
+    ctx.fillStyle = lv.snow;
     [[50,95],[200,70],[400,50],[600,40],[700,100]].forEach(([px,py]) => {
       const sx = ((px - mOff*0.3) % W + W) % W;
       ctx.beginPath(); ctx.ellipse(sx, py+10, 20, 15, 0, 0, Math.PI*2); ctx.fill();
     });
     // Mid peaks
     const mid = [[0,220],[80,155],[170,195],[280,125],[370,175],[470,135],[560,185],[660,145],[760,170],[800,190],[800,H],[0,H]];
-    ctx.fillStyle = '#556878';
+    ctx.fillStyle = lv.mountains[1];
     drawPoly(mid, -mOff*0.6); drawPoly(mid, W-mOff*0.6);
   }
 
@@ -274,7 +287,7 @@
 
   function drawUpperLedge() {
     // Cliff face fill (from upper path down ~45px)
-    ctx.fillStyle = '#4a4035';
+    ctx.fillStyle = LEVELS[level].ledge;
     ctx.beginPath();
     ctx.moveTo(0, upperAt(0));
     for (let sx = 0; sx <= W; sx += 8) ctx.lineTo(sx, upperAt(sx));
@@ -296,7 +309,7 @@
     ctx.fill();
 
     // Surface trail line
-    ctx.strokeStyle = '#b0a080';
+    ctx.strokeStyle = LEVELS[level].trail;
     ctx.lineWidth = 4;
     ctx.beginPath();
     ctx.moveTo(0, upperAt(0));
@@ -304,7 +317,7 @@
     ctx.stroke();
 
     // Pebbles
-    ctx.fillStyle = '#8a7860';
+    ctx.fillStyle = LEVELS[level].pebble;
     for (let i = 0; i < 10; i++) {
       const px = ((i * 85 + frame * speed * 0.25) % (W + 20)) - 10;
       ctx.beginPath();
@@ -315,10 +328,11 @@
 
   function drawLowerGround() {
     // Fill from lower terrain to bottom of canvas
+    const lv = LEVELS[level];
     const grd = ctx.createLinearGradient(0, LOWER_Y - 20, 0, H);
-    grd.addColorStop(0, '#9a8560');
-    grd.addColorStop(0.15, '#7a6040');
-    grd.addColorStop(1, '#3a2010');
+    grd.addColorStop(0, lv.ground[0]);
+    grd.addColorStop(0.15, lv.ground[1]);
+    grd.addColorStop(1, lv.ground[2]);
     ctx.fillStyle = grd;
     ctx.beginPath();
     ctx.moveTo(0, lowerAt(0));
@@ -328,7 +342,7 @@
     ctx.fill();
 
     // Trail surface line
-    ctx.strokeStyle = '#c0a880';
+    ctx.strokeStyle = LEVELS[level].trail;
     ctx.lineWidth = 4;
     ctx.beginPath();
     ctx.moveTo(0, lowerAt(0));
@@ -336,7 +350,7 @@
     ctx.stroke();
 
     // Pebbles
-    ctx.fillStyle = '#6a5535';
+    ctx.fillStyle = lv.pebble;
     for (let i = 0; i < 14; i++) {
       const px = ((i * 62 + frame * speed * 0.28) % (W + 20)) - 10;
       const py = lowerAt(px) + 6 + (i % 4) * 4;
@@ -1230,7 +1244,7 @@
 
     if (state === 'waiting') {
       drawOverlay(
-        ['\uD83D\uDC0E  Wild Stallion \u2014 Raven', 'Press 1 \u2014 Level 1  |  Press 2 \u2014 Level 2', 'SPACE = jump  |  \u2191 \u2193 = switch paths'],
+        ['\uD83D\uDC0E  Wild Stallion \u2014 Raven', '1: Mountain  2: Sunset  3: Night  4: Volcano', 'SPACE = jump  |  \u2191 \u2193 = switch paths'],
         ['#ffe87a', '#88ffaa', '#aaccff']
       );
     }
@@ -1246,14 +1260,15 @@
       );
     }
     if (state === 'won') {
-      if (level === 1) {
+      if (level < 4) {
+        const nextTheme = LEVELS[level + 1].theme;
         drawOverlay(
-          ['\uD83C\uDF89  Level 1 Complete!', '\uD83C\uDF4E Apples: ' + score, 'Press SPACE for Level 2!'],
+          ['\uD83C\uDF89  ' + LEVELS[level].theme + ' Complete!', '\uD83C\uDF4E Apples: ' + score, 'Press SPACE for ' + nextTheme + '!'],
           ['#88ffaa', '#ffe87a', '#cccccc']
         );
       } else {
         drawOverlay(
-          ['\uD83C\uDFC6  You Beat the Game!', '\uD83C\uDF4E Total Apples: ' + score, 'Amazing job! Press SPACE to play again'],
+          ['\uD83C\uDFC6  You Beat All 4 Levels!', '\uD83C\uDF4E Total Apples: ' + score, 'Amazing job! Press SPACE to play again'],
           ['#ffe87a', '#88ffaa', '#cccccc']
         );
       }
