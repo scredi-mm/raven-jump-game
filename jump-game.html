@@ -2163,6 +2163,74 @@
     ctx.fill();
   }
 
+  // ── Snow/sand cover — hides legs below ground surface ──────────────────────
+
+  function drawSnowCover() {
+    const th = LEVELS[level].obstacleTheme;
+    const isSnowy = th === 'canada' || th === 'arctic';
+    const isSandy = th === 'beach';
+    if ((!isSnowy && !isSandy) || !horse.onGround || snowSink < 0.5) return;
+
+    const lv = LEVELS[level];
+    const onUpper = horse.lane === 1;
+    const groundY = horse.targetY; // the surface level where horse stands
+    const coverX = hsx - 60;  // wide enough to cover all 4 legs
+    const coverW = 120;
+
+    ctx.save();
+
+    // Clip to just the area around the horse legs, from ground surface down
+    ctx.beginPath();
+    ctx.rect(coverX, groundY, coverW, 40);
+    ctx.clip();
+
+    // Redraw the ground/ledge fill in this clipped area to cover buried legs
+    if (onUpper) {
+      // Upper ledge — use ledge color
+      ctx.fillStyle = lv.ledge;
+      ctx.fillRect(coverX, groundY, coverW, 40);
+      // Ledge face gradient overlay
+      const grd = ctx.createLinearGradient(0, groundY, 0, groundY + 40);
+      grd.addColorStop(0, 'rgba(100,85,65,0.9)');
+      grd.addColorStop(0.4, 'rgba(65,48,30,0.9)');
+      grd.addColorStop(1, 'rgba(35,20,5,0.7)');
+      ctx.fillStyle = grd;
+      ctx.fillRect(coverX, groundY + 2, coverW, 38);
+    } else {
+      // Lower ground — use ground gradient
+      const grd = ctx.createLinearGradient(0, groundY - 5, 0, groundY + 40);
+      grd.addColorStop(0, lv.ground[0]);
+      grd.addColorStop(0.3, lv.ground[1]);
+      grd.addColorStop(1, lv.ground[2]);
+      ctx.fillStyle = grd;
+      ctx.fillRect(coverX, groundY, coverW, 40);
+    }
+
+    // Redraw the trail surface line on top for continuity
+    const atFn = onUpper ? upperAt : lowerAt;
+    ctx.strokeStyle = lv.trail;
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(coverX, atFn(coverX));
+    for (let sx = coverX; sx <= coverX + coverW; sx += 4) {
+      ctx.lineTo(sx, atFn(sx));
+    }
+    ctx.stroke();
+
+    // Snow/sand surface bumps where hooves churn the surface
+    if (isSnowy) {
+      ctx.fillStyle = 'rgba(240,248,255,0.3)';
+      ctx.beginPath(); ctx.ellipse(hsx - 30, groundY + 2, 12, 3, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(hsx + 32, groundY + 2, 12, 3, 0, 0, Math.PI * 2); ctx.fill();
+    } else if (isSandy) {
+      ctx.fillStyle = 'rgba(230,210,160,0.3)';
+      ctx.beginPath(); ctx.ellipse(hsx - 28, groundY + 2, 10, 2.5, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(hsx + 30, groundY + 2, 10, 2.5, 0, 0, Math.PI * 2); ctx.fill();
+    }
+
+    ctx.restore();
+  }
+
   // ── Lane indicators ────────────────────────────────────────────────────────
 
   function drawLaneIndicators() {
@@ -2663,6 +2731,7 @@
     if (LEVELS[level].hazard === 'lava' || LEVELS[level].hazard === 'both') drawLava();
     if (LEVELS[level].hazard === 'cars') drawHazardCars();
     drawRaven(hsx, horse.y, horse.gallopT, horse.jumpPhase, horse.jumpT, state === 'playing');
+    drawSnowCover();
     drawCollectFx();
     drawDust();
     drawFinishLine();
