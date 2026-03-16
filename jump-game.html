@@ -28,7 +28,7 @@
 </head>
 <body>
   <canvas id="c" width="800" height="380"></canvas>
-  <div id="hint">SPACE = jump &nbsp;|&nbsp; ↑ / ↓ = switch path &nbsp;|&nbsp; 1-6 = pick level &nbsp;|&nbsp; C = fullscreen &nbsp;|&nbsp; B = exit</div>
+  <div id="hint">SPACE = jump &nbsp;|&nbsp; ↑ / ↓ = switch path &nbsp;|&nbsp; 1-8 = pick level &nbsp;|&nbsp; C = fullscreen &nbsp;|&nbsp; B = exit</div>
   <script>
   const canvas = document.getElementById('c');
   const ctx = canvas.getContext('2d');
@@ -108,29 +108,37 @@
   let level = 1;
   const LEVELS = {
     1: { speed: 3, obsInterval: 130, appleInterval: 50, smallOnly: true, label: 'Level 1', finishAt: 8000,
-         sky: ['#1e3c64','#6aaed6','#b8d8ee'], mountains: ['#7a88a0','#556878'], snow: '#eef2f8',
-         ground: ['#9a8560','#7a6040','#3a2010'], ledge: '#4a4035', trail: '#c0a880', pebble: '#8a7860',
-         cloudAlpha: 0.8, theme: 'Mountain Morning', hazard: 'none' },
+         sky: ['#1a1040','#3a2060','#cc6699'], mountains: ['#3a3050','#2a2040'], snow: '#ddd0e0',
+         ground: ['#8a8090','#6a6070','#4a4050'], ledge: '#5a5060', trail: '#aaa0b0', pebble: '#7a7080',
+         cloudAlpha: 0.3, theme: 'Paris', hazard: 'none', obstacleTheme: 'paris' },
     2: { speed: 3.5, obsInterval: 110, appleInterval: 45, smallOnly: true, label: 'Level 2', finishAt: 9000,
-         sky: ['#ff7b00','#ffb347','#ffe0a0'], mountains: ['#5a3a2a','#3a2518'], snow: '#ffddaa',
-         ground: ['#8a6530','#6a4520','#2a1505'], ledge: '#3a2a1a', trail: '#d0a060', pebble: '#7a5830',
-         cloudAlpha: 0.5, theme: 'Sunset Canyon', hazard: 'none' },
+         sky: ['#0a1a3a','#1a3a6a','#3a6a9a'], mountains: ['#8a9aaa','#6a7a8a'], snow: '#eef4ff',
+         ground: ['#ddd8cc','#bbb4a8','#8a8070'], ledge: '#6a6a6a', trail: '#e0ddd0', pebble: '#9a9a9a',
+         cloudAlpha: 0.4, theme: 'Canadian Rockies', hazard: 'none', obstacleTheme: 'canada' },
     3: { speed: 4, obsInterval: 90,  appleInterval: 35, smallOnly: false, label: 'Level 3', finishAt: 10000,
-         sky: ['#0a1628','#1a3050','#2a4a6a'], mountains: ['#1a2a3a','#0e1a28'], snow: '#aaccee',
-         ground: ['#4a5060','#3a3a45','#1a1520'], ledge: '#2a2530', trail: '#8888aa', pebble: '#5a5a70',
-         cloudAlpha: 0.3, theme: 'Moonlit Ridge', hazard: 'boulders' },
+         sky: ['#4a90d9','#7abde8','#c8e6f5'], mountains: ['#5a8a45','#3a6a28'], snow: '#ffffff',
+         ground: ['#6a8a40','#4a6a28','#2a4a10'], ledge: '#3a5020', trail: '#c8b080', pebble: '#7a8a50',
+         cloudAlpha: 0.9, theme: 'Kentucky', hazard: 'boulders', obstacleTheme: 'kentucky' },
     4: { speed: 4.2, obsInterval: 82, appleInterval: 32, smallOnly: false, label: 'Level 4', finishAt: 11000,
-         sky: ['#0a2a1a','#1a5a3a','#3a8a5a'], mountains: ['#1a3a2a','#0e2a18'], snow: '#aaeebb',
-         ground: ['#3a5a40','#2a4030','#0a1a08'], ledge: '#1a3020', trail: '#6a9a70', pebble: '#4a6a4a',
-         cloudAlpha: 0.4, theme: 'Emerald Forest', hazard: 'boulders' },
+         sky: ['#ff7700','#ffaa44','#ffdd88'], mountains: ['#8a4422','#6a3018'], snow: '#ffccaa',
+         ground: ['#6a4a28','#4a3018','#2a1808'], ledge: '#3a2010', trail: '#b09060', pebble: '#7a5a30',
+         cloudAlpha: 0.4, theme: 'Michigan', hazard: 'boulders', obstacleTheme: 'michigan' },
     5: { speed: 4.5, obsInterval: 75, appleInterval: 30, smallOnly: false, label: 'Level 5', finishAt: 12000,
-         sky: ['#2a0a2a','#5a1a4a','#aa3355'], mountains: ['#3a1a2a','#220a18'], snow: '#ff8888',
-         ground: ['#5a2a20','#3a1a10','#1a0a05'], ledge: '#2a1510', trail: '#aa6655', pebble: '#6a3a2a',
-         cloudAlpha: 0.2, theme: 'Volcanic Peak', hazard: 'lava' },
+         sky: ['#3399ff','#66bbff','#aadd55'], mountains: ['#cc9944','#aa7722'], snow: '#ffddaa',
+         ground: ['#d4aa66','#b08844','#8a6830'], ledge: '#9a7840', trail: '#e8c888', pebble: '#b09050',
+         cloudAlpha: 0.2, theme: 'Texas', hazard: 'lava', obstacleTheme: 'texas' },
     6: { speed: 5, obsInterval: 65, appleInterval: 28, smallOnly: false, label: 'Level 6', finishAt: 14000,
-         sky: ['#0a0a1a','#1a0a2a','#3a1a4a'], mountains: ['#1a1a2a','#0a0a18'], snow: '#8888cc',
-         ground: ['#2a2a3a','#1a1a28','#0a0a10'], ledge: '#151520', trail: '#6666aa', pebble: '#4a4a60',
-         cloudAlpha: 0.15, theme: 'Storm Summit', hazard: 'both' },
+         sky: ['#0a1828','#1a2838','#2a4050'], mountains: ['#2a4050','#1a3040'], snow: '#b0d0e8',
+         ground: ['#c8d8e0','#a0b8c8','#708898'], ledge: '#5a7888', trail: '#d8e8f0', pebble: '#8aa0b0',
+         cloudAlpha: 0.2, theme: 'Northern Canada', hazard: 'both', obstacleTheme: 'arctic' },
+    7: { speed: 5.2, obsInterval: 60, appleInterval: 26, smallOnly: false, label: 'Level 7', finishAt: 15000,
+         sky: ['#1a8acc','#55ccff','#aaeeff'], mountains: ['#cc9944','#aa7733'], snow: '#ffffff',
+         ground: ['#e8d4a0','#d4bb80','#c0a060'], ledge: '#c4a868', trail: '#f0dda0', pebble: '#b89a60',
+         cloudAlpha: 0.7, theme: 'Sunny Beach', hazard: 'none', obstacleTheme: 'beach' },
+    8: { speed: 5.5, obsInterval: 55, appleInterval: 24, smallOnly: false, label: 'Level 8', finishAt: 16000,
+         sky: ['#1a2a4a','#2a3a5a','#4a5a7a'], mountains: ['#3a3a4a','#2a2a3a'], snow: '#aaaacc',
+         ground: ['#555555','#444444','#333333'], ledge: '#3a3a3a', trail: '#888888', pebble: '#666666',
+         cloudAlpha: 0.15, theme: 'New York City', hazard: 'cars', obstacleTheme: 'city' },
   };
   let score = 0, speed = 3, frame = 0;
   let highScore = Math.max(35, parseInt(localStorage.getItem('ravenHighScore') || '35'));
@@ -143,6 +151,8 @@
   let nextLavaIn = 0;
   let rollingBoulders = []; // rolling boulders for level 3
   let nextBoulderIn = 0;
+  let hazardCars = []; // cars zooming from right for NYC level
+  let nextCarIn = 0;
   let dust = [];
   let cloudX = [50, 250, 500, 680];
   let worldOffset = 0;   // total distance traveled
@@ -163,7 +173,7 @@
     horse.jumpPhase = 'none'; horse.jumpT = 0;
     neighAudio.pause(); neighAudio.currentTime = 0;
     gallopAudio.pause(); gallopPlaying = false;
-    obstacles = []; trees = []; dust = []; apples = []; collectFx = []; confetti = []; lavaFlows = []; nextLavaIn = 0; rollingBoulders = []; nextBoulderIn = 0;
+    obstacles = []; trees = []; dust = []; apples = []; collectFx = []; confetti = []; lavaFlows = []; nextLavaIn = 0; rollingBoulders = []; nextBoulderIn = 0; hazardCars = []; nextCarIn = 0;
     const lv = LEVELS[level];
     score = 0; speed = lv.speed; frame = 0;
     nextObsIn = lv.obsInterval; nextTreeIn = 0; nextAppleIn = lv.appleInterval;
@@ -189,17 +199,17 @@
       // Space to restart after death — but only after 1 second buffer
       if (state === 'dead' && Date.now() - stateTime > 1000) { state = 'waiting'; return; }
     }
-    if ((state === 'waiting' || state === 'dead') && ['Digit1','Digit2','Digit3','Digit4','Digit5','Digit6'].includes(e.code)) {
+    if ((state === 'waiting' || state === 'dead') && ['Digit1','Digit2','Digit3','Digit4','Digit5','Digit6','Digit7','Digit8'].includes(e.code)) {
       level = parseInt(e.code.charAt(5)); reset(); return;
     }
     if ((e.code === 'Enter' || e.code === 'Space') && state === 'won') {
-      if (level < 6) {
+      if (level < 8) {
         // Advance to next level — keep the apple score!
         const keptScore = score;
         level++; reset();
         score = keptScore;
       } else {
-        // Beat all 4 levels! Go back to menu
+        // Beat all 8 levels! Go back to menu
         state = 'waiting';
       }
       return;
@@ -286,49 +296,319 @@
   function drawMountains() {
     mOff = (mOff + speed * 0.04) % W;
     const lv = LEVELS[level];
-    // Far peaks
-    const far = [[0,185],[50,95],[110,145],[200,70],[300,120],[400,50],[490,110],[600,40],[700,100],[800,70],[800,H],[0,H]];
-    ctx.fillStyle = lv.mountains[0];
-    drawPoly(far, -mOff*0.3); drawPoly(far, W-mOff*0.3);
-    // Snow caps
-    ctx.fillStyle = lv.snow;
-    [[50,95],[200,70],[400,50],[600,40],[700,100]].forEach(([px,py]) => {
-      const sx = ((px - mOff*0.3) % W + W) % W;
-      ctx.beginPath(); ctx.ellipse(sx, py+10, 20, 15, 0, 0, Math.PI*2); ctx.fill();
-    });
-    // Mid peaks
-    const mid = [[0,220],[80,155],[170,195],[280,125],[370,175],[470,135],[560,185],[660,145],[760,170],[800,190],[800,H],[0,H]];
-    ctx.fillStyle = lv.mountains[1];
-    drawPoly(mid, -mOff*0.6); drawPoly(mid, W-mOff*0.6);
+    const theme = lv.obstacleTheme || 'mountain';
 
-    // Volcanic eruption glow on level 4
-    if (LEVELS[level].hazard === 'lava' || LEVELS[level].hazard === 'both') {
-      // Lava streams down the two tallest peaks
-      const peaks = [[200,70],[400,50]];
-      peaks.forEach(([px,py]) => {
-        const sx = ((px - mOff*0.3) % W + W) % W;
-        // Glowing crater
-        const craterGlow = ctx.createRadialGradient(sx, py + 5, 3, sx, py + 5, 30);
-        craterGlow.addColorStop(0, 'rgba(255,150,0,0.6)');
-        craterGlow.addColorStop(1, 'rgba(255,50,0,0)');
-        ctx.fillStyle = craterGlow;
-        ctx.beginPath(); ctx.arc(sx, py + 5, 30, 0, Math.PI * 2); ctx.fill();
-        // Lava stream down the mountainside
-        const t = frame * 0.03;
-        ctx.strokeStyle = `rgba(255,${80 + Math.sin(t) * 40},0,0.5)`;
-        ctx.lineWidth = 3;
+    if (theme === 'kentucky') {
+      // Rolling green hills with white fences and red barns
+      const hills1 = [[0,200],[80,170],[180,190],[300,155],[420,180],[540,160],[680,175],[800,165],[800,H],[0,H]];
+      ctx.fillStyle = '#5a8a35';
+      drawPoly(hills1, -mOff*0.3); drawPoly(hills1, W-mOff*0.3);
+      const hills2 = [[0,230],[100,210],[220,225],[360,200],[500,220],[640,205],[780,215],[800,225],[800,H],[0,H]];
+      ctx.fillStyle = '#4a7a28';
+      drawPoly(hills2, -mOff*0.6); drawPoly(hills2, W-mOff*0.6);
+      // Red barns in the distance
+      const barns = [[120,168],[450,158],[720,172]];
+      barns.forEach(([bx,by]) => {
+        const sx = ((bx - mOff*0.3) % W + W) % W;
+        ctx.fillStyle = '#8a2222'; ctx.fillRect(sx-12, by-18, 24, 18);
+        ctx.fillStyle = '#6a1818';
+        ctx.beginPath(); ctx.moveTo(sx-14, by-18); ctx.lineTo(sx, by-30); ctx.lineTo(sx+14, by-18); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#ffffff'; ctx.fillRect(sx-3, by-14, 6, 10);
+      });
+      // White fences
+      ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.5;
+      for (let fx = 0; fx < W; fx += 18) {
+        const fsx = ((fx - mOff*0.5) % W + W) % W;
+        const fy = 228;
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(fsx, fy-10, 2, 12);
+      }
+      ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(0, 221); ctx.lineTo(W, 221); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, 226); ctx.lineTo(W, 226); ctx.stroke();
+      return;
+    }
+
+    if (theme === 'canada') {
+      // Tall snowy Rocky Mountain peaks
+      const far = [[0,160],[40,80],[90,130],[160,50],[240,110],[340,30],[420,90],[520,20],[600,70],[700,40],[780,100],[800,80],[800,H],[0,H]];
+      ctx.fillStyle = lv.mountains[0];
+      drawPoly(far, -mOff*0.2); drawPoly(far, W-mOff*0.2);
+      // Snow caps - thick white on peaks
+      ctx.fillStyle = '#eef4ff';
+      [[40,80],[160,50],[340,30],[520,20],[700,40]].forEach(([px,py]) => {
+        const sx = ((px - mOff*0.2) % W + W) % W;
+        ctx.beginPath(); ctx.moveTo(sx-25, py+25); ctx.lineTo(sx, py); ctx.lineTo(sx+25, py+25); ctx.closePath(); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(sx, py+25, 28, 8, 0, 0, Math.PI*2); ctx.fill();
+      });
+      const mid = [[0,210],[60,170],[140,195],[250,140],[360,180],[470,150],[570,185],[670,155],[770,175],[800,195],[800,H],[0,H]];
+      ctx.fillStyle = lv.mountains[1];
+      drawPoly(mid, -mOff*0.5); drawPoly(mid, W-mOff*0.5);
+      // Northern lights shimmer
+      const t = frame * 0.015;
+      ctx.globalAlpha = 0.12 + Math.sin(t) * 0.05;
+      const aGrd = ctx.createLinearGradient(0, 20, W, 100);
+      aGrd.addColorStop(0, '#00ff88'); aGrd.addColorStop(0.3, '#00ccaa');
+      aGrd.addColorStop(0.6, '#5588ff'); aGrd.addColorStop(1, '#aa44ff');
+      ctx.fillStyle = aGrd;
+      ctx.beginPath(); ctx.moveTo(0, 30);
+      for (let x = 0; x <= W; x += 8) {
+        ctx.lineTo(x, 50 + Math.sin(x*0.008+t)*25 + Math.sin(x*0.02+t*1.3)*10);
+      }
+      ctx.lineTo(W, 0); ctx.lineTo(0, 0); ctx.closePath(); ctx.fill();
+      ctx.globalAlpha = 1;
+      return;
+    }
+
+    if (theme === 'paris') {
+      // Parisian rooftops with Eiffel Tower
+      const roofs1 = [[0,180,35],[40,160,30],[75,170,40],[120,150,35],[160,165,30],[195,145,45],
+        [245,175,35],[285,155,40],[330,170,30],[365,140,35],[405,160,40],[450,150,30],
+        [485,175,35],[525,145,40],[570,165,30],[605,155,35],[645,170,40],[690,148,30],
+        [725,162,35],[765,152,40]];
+      ctx.fillStyle = lv.mountains[0];
+      roofs1.forEach(([rx,ry,rw]) => {
+        const sx = ((rx - mOff*0.3) % W + W) % W;
+        ctx.fillRect(sx, ry, rw, H-ry);
+        // Peaked rooftop
+        ctx.beginPath(); ctx.moveTo(sx-2, ry); ctx.lineTo(sx+rw/2, ry-12); ctx.lineTo(sx+rw+2, ry); ctx.closePath(); ctx.fill();
+      });
+      // Chimney pots
+      ctx.fillStyle = '#4a3a40';
+      roofs1.forEach(([rx,ry,rw], i) => {
+        if (i%3===0) {
+          const sx = ((rx - mOff*0.3) % W + W) % W;
+          ctx.fillRect(sx+rw*0.7, ry-18, 4, 10);
+        }
+      });
+      // Windows (warm glow)
+      ctx.fillStyle = 'rgba(255,220,120,0.5)';
+      roofs1.forEach(([rx,ry,rw]) => {
+        const sx = ((rx - mOff*0.3) % W + W) % W;
+        for (let wy = ry+8; wy < Math.min(ry+60, H-30); wy += 16) {
+          for (let wx = 4; wx < rw-6; wx += 10) { ctx.fillRect(sx+wx, wy, 5, 8); }
+        }
+      });
+      // Eiffel Tower silhouette (far background)
+      const eifX = ((400 - mOff*0.15) % W + W) % W;
+      ctx.fillStyle = '#2a2030';
+      // Tower legs
+      ctx.beginPath();
+      ctx.moveTo(eifX-25, 190); ctx.lineTo(eifX-8, 80); ctx.lineTo(eifX-5, 80); ctx.lineTo(eifX-15, 190);
+      ctx.closePath(); ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(eifX+25, 190); ctx.lineTo(eifX+8, 80); ctx.lineTo(eifX+5, 80); ctx.lineTo(eifX+15, 190);
+      ctx.closePath(); ctx.fill();
+      // Tower middle section
+      ctx.fillRect(eifX-10, 80, 20, 5);
+      ctx.fillRect(eifX-7, 60, 14, 20);
+      // Tower spire
+      ctx.beginPath();
+      ctx.moveTo(eifX-3, 60); ctx.lineTo(eifX, 15); ctx.lineTo(eifX+3, 60); ctx.closePath(); ctx.fill();
+      // Platform
+      ctx.fillRect(eifX-14, 130, 28, 4);
+      return;
+    }
+
+    if (theme === 'michigan') {
+      // Michigan autumn forest with Great Lakes
+      const far = [[0,190],[60,150],[140,175],[240,130],[340,165],[450,140],[560,170],[670,135],[780,160],[800,155],[800,H],[0,H]];
+      ctx.fillStyle = lv.mountains[0];
+      drawPoly(far, -mOff*0.3); drawPoly(far, W-mOff*0.3);
+      const mid = [[0,220],[80,195],[180,215],[300,185],[420,210],[540,190],[660,205],[780,195],[800,210],[800,H],[0,H]];
+      ctx.fillStyle = lv.mountains[1];
+      drawPoly(mid, -mOff*0.5); drawPoly(mid, W-mOff*0.5);
+      // Lake Michigan shimmer in background
+      ctx.fillStyle = '#2266aa';
+      ctx.fillRect(0, 218, W, 18);
+      const wt = frame * 0.03;
+      ctx.strokeStyle = 'rgba(100,180,255,0.3)'; ctx.lineWidth = 1;
+      for (let r = 0; r < 3; r++) {
         ctx.beginPath();
-        ctx.moveTo(sx, py + 10);
-        ctx.quadraticCurveTo(sx + 15, py + 50, sx + 8, py + 100);
-        ctx.quadraticCurveTo(sx + 20, py + 130, sx + 12, py + 160);
+        for (let x = 0; x <= W; x += 5) {
+          ctx.lineTo(x, 222 + r*5 + Math.sin(x*0.02+wt+r)*2);
+        }
         ctx.stroke();
-        // Second stream
+      }
+      // Lighthouse in distance
+      const lhX = ((550 - mOff*0.2) % W + W) % W;
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(lhX-3, 170, 6, 30);
+      ctx.fillStyle = '#cc3333'; ctx.fillRect(lhX-4, 170, 8, 5);
+      ctx.fillStyle = '#ffee88';
+      ctx.beginPath(); ctx.arc(lhX, 168, 4, 0, Math.PI*2); ctx.fill();
+      // Falling autumn leaves
+      const leafColors = ['#cc4422','#dd6622','#eeaa22','#cc3300','#dd8800'];
+      for (let i = 0; i < 10; i++) {
+        const lx = ((i*83 + frame*0.7) % W);
+        const ly = ((i*51 + frame*0.5) % 180) + 30;
+        ctx.fillStyle = leafColors[i % leafColors.length];
+        ctx.globalAlpha = 0.6;
+        ctx.beginPath(); ctx.ellipse(lx, ly, 4, 2.5, frame*0.03+i*0.5, 0, Math.PI*2); ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+      return;
+    }
+
+    if (theme === 'texas') {
+      // Texas desert with mesas and big sky
+      const mesas = [[0,210],[50,210],[55,160],[120,160],[125,210],[250,210],[255,140],[350,140],[355,210],
+        [500,210],[505,170],[580,170],[585,210],[700,210],[705,150],[790,150],[800,210],[800,H],[0,H]];
+      ctx.fillStyle = lv.mountains[0];
+      drawPoly(mesas, -mOff*0.25); drawPoly(mesas, W-mOff*0.25);
+      // Closer mesa layer
+      const near = [[0,235],[100,235],[105,195],[170,195],[175,235],[350,235],[355,200],[430,200],[435,235],
+        [600,235],[605,210],[680,210],[685,235],[800,235],[800,H],[0,H]];
+      ctx.fillStyle = lv.mountains[1];
+      drawPoly(near, -mOff*0.5); drawPoly(near, W-mOff*0.5);
+      // Big sun
+      const sunX = ((650 - mOff*0.05) % W + W) % W;
+      ctx.globalAlpha = 0.5;
+      const sunGrd = ctx.createRadialGradient(sunX, 120, 20, sunX, 120, 70);
+      sunGrd.addColorStop(0, '#ffee44'); sunGrd.addColorStop(0.5, '#ff9900'); sunGrd.addColorStop(1, 'rgba(255,100,0,0)');
+      ctx.fillStyle = sunGrd;
+      ctx.beginPath(); ctx.arc(sunX, 120, 70, 0, Math.PI*2); ctx.fill();
+      ctx.globalAlpha = 1;
+      // Distant cactus silhouettes
+      ctx.fillStyle = '#7a5a28';
+      [[180,208],[420,205],[680,210]].forEach(([cx,cy]) => {
+        const sx = ((cx - mOff*0.35) % W + W) % W;
+        ctx.fillRect(sx-2, cy-20, 4, 20);
+        ctx.fillRect(sx-8, cy-15, 6, 3); ctx.fillRect(sx-8, cy-15, 3, -8);
+        ctx.fillRect(sx+3, cy-12, 6, 3); ctx.fillRect(sx+6, cy-12, 3, -6);
+      });
+      // Heat shimmer
+      ctx.globalAlpha = 0.04;
+      ctx.fillStyle = '#ffffff';
+      for (let x = 0; x < W; x += 20) {
+        const sy = 240 + Math.sin(x*0.05+frame*0.06)*3;
+        ctx.fillRect(x, sy, 15, 2);
+      }
+      ctx.globalAlpha = 1;
+      // Lava hazard visual (oil fires / brush fires)
+      if (LEVELS[level].hazard === 'lava' || LEVELS[level].hazard === 'both') {
+        const t = frame * 0.03;
+        ctx.strokeStyle = `rgba(255,${80+Math.sin(t)*40},0,0.3)`;
+        ctx.lineWidth = 2;
+        [[200,160],[350,140]].forEach(([px,py]) => {
+          const sx = ((px - mOff*0.25) % W + W) % W;
+          ctx.beginPath(); ctx.moveTo(sx, py);
+          ctx.quadraticCurveTo(sx+5, py-20, sx+3, py-35); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(sx+8, py+2);
+          ctx.quadraticCurveTo(sx+12, py-15, sx+10, py-28); ctx.stroke();
+        });
+      }
+      return;
+    }
+
+    if (theme === 'arctic') {
+      // Dark stormy arctic with ice formations
+      const ice1 = [[0,180],[50,150],[90,170],[150,120],[200,160],[270,100],[330,155],[400,130],[470,165],[540,110],[610,150],[680,135],[750,160],[800,145],[800,H],[0,H]];
+      ctx.fillStyle = lv.mountains[0];
+      drawPoly(ice1, -mOff*0.25); drawPoly(ice1, W-mOff*0.25);
+      // Ice/glacier highlights
+      ctx.fillStyle = 'rgba(150,200,230,0.3)';
+      [[150,120],[270,100],[540,110]].forEach(([px,py]) => {
+        const sx = ((px - mOff*0.25) % W + W) % W;
+        ctx.beginPath(); ctx.moveTo(sx-15, py+30); ctx.lineTo(sx, py); ctx.lineTo(sx+15, py+30); ctx.closePath(); ctx.fill();
+      });
+      const ice2 = [[0,220],[70,195],[160,215],[270,180],[370,210],[470,190],[570,205],[670,185],[770,200],[800,210],[800,H],[0,H]];
+      ctx.fillStyle = lv.mountains[1];
+      drawPoly(ice2, -mOff*0.5); drawPoly(ice2, W-mOff*0.5);
+      // Blowing snow particles
+      ctx.fillStyle = 'rgba(220,235,245,0.6)';
+      for (let i = 0; i < 20; i++) {
+        const sx = ((i*43 + frame*2.5) % (W+40)) - 20;
+        const sy = 80 + (i*37)%180 + Math.sin(frame*0.08+i*2)*15;
+        ctx.beginPath(); ctx.arc(sx, sy, 1.5+Math.random(), 0, Math.PI*2); ctx.fill();
+      }
+      // Lightning flash (rare)
+      if (Math.sin(frame*0.007) > 0.98) {
+        ctx.globalAlpha = 0.15;
+        ctx.fillStyle = '#aaccff';
+        ctx.fillRect(0, 0, W, H);
+        ctx.globalAlpha = 1;
+      }
+      return;
+    }
+
+    if (theme === 'beach') {
+      // Sand dunes instead of mountains
+      const dunes = [[0,220],[60,195],[150,210],[250,185],[350,200],[450,180],[550,195],[650,188],[750,205],[800,210],[800,H],[0,H]];
+      ctx.fillStyle = '#d4aa55';
+      drawPoly(dunes, -mOff*0.3); drawPoly(dunes, W-mOff*0.3);
+      const near = [[0,240],[70,225],[180,235],[300,218],[420,230],[540,215],[660,228],[780,222],[800,235],[800,H],[0,H]];
+      ctx.fillStyle = '#c49a45';
+      drawPoly(near, -mOff*0.6); drawPoly(near, W-mOff*0.6);
+      // Ocean waves behind the trail
+      const waveT = frame * 0.04;
+      ctx.fillStyle = '#1a6aaa';
+      ctx.beginPath(); ctx.moveTo(0, 280);
+      for (let x = 0; x <= W; x += 4) {
+        ctx.lineTo(x, 275 + Math.sin(x*0.03+waveT)*5 + Math.sin(x*0.01+waveT*0.7)*3);
+      }
+      ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath(); ctx.fill();
+      // Foam on wave crests
+      ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(0, 278);
+      for (let x = 0; x <= W; x += 4) {
+        ctx.lineTo(x, 274 + Math.sin(x*0.03+waveT)*5 + Math.sin(x*0.01+waveT*0.7)*3);
+      }
+      ctx.stroke();
+      // Seagulls
+      ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.5;
+      [[100,80],[350,60],[600,90],[750,55]].forEach(([gx,gy], i) => {
+        const sx = ((gx + frame*0.3 + i*50) % (W+60)) - 30;
         ctx.beginPath();
-        ctx.moveTo(sx - 3, py + 12);
-        ctx.quadraticCurveTo(sx - 18, py + 60, sx - 10, py + 110);
-        ctx.quadraticCurveTo(sx - 22, py + 140, sx - 15, py + 170);
+        ctx.moveTo(sx-8, gy+3); ctx.quadraticCurveTo(sx-4, gy-3, sx, gy);
+        ctx.quadraticCurveTo(sx+4, gy-3, sx+8, gy+3);
         ctx.stroke();
       });
+      return;
+    }
+
+    if (theme === 'city') {
+      // NYC skyline with buildings
+      const buildings = [
+        [0,180,40],[45,140,35],[85,165,45],[135,110,40],[180,150,35],[220,130,50],
+        [275,170,40],[320,100,45],[370,145,35],[410,120,40],[455,160,45],[505,90,50],
+        [560,140,35],[600,115,45],[650,155,40],[695,105,35],[735,135,45],[785,125,30],
+      ];
+      ctx.fillStyle = lv.mountains[0];
+      buildings.forEach(([bx,by,bw]) => {
+        const sx = ((bx - mOff*0.3) % W + W) % W;
+        ctx.fillRect(sx, by, bw, H-by);
+      });
+      ctx.fillStyle = 'rgba(255,220,80,0.4)';
+      buildings.forEach(([bx,by,bw]) => {
+        const sx = ((bx - mOff*0.3) % W + W) % W;
+        for (let wy = by+8; wy < Math.min(by+100, H-30); wy += 14) {
+          for (let wx = 4; wx < bw-6; wx += 10) { ctx.fillRect(sx+wx, wy, 5, 7); }
+        }
+      });
+      // Empire State Building silhouette
+      const esX = ((505 - mOff*0.3) % W + W) % W;
+      ctx.fillStyle = lv.mountains[0];
+      ctx.fillRect(esX+15, 40, 18, 50); // spire section
+      ctx.fillRect(esX+20, 20, 8, 25); // antenna
+      ctx.fillRect(esX+22, 10, 4, 12); // tip
+      const near = [
+        [0,200,50],[55,175,40],[100,195,55],[160,160,45],[210,185,40],[255,170,50],
+        [310,200,45],[360,155,40],[405,180,50],[460,165,45],[510,190,40],[555,150,55],
+        [615,175,40],[660,195,50],[715,165,45],[765,185,40],
+      ];
+      ctx.fillStyle = lv.mountains[1];
+      near.forEach(([bx,by,bw]) => {
+        const sx = ((bx - mOff*0.6) % W + W) % W;
+        ctx.fillRect(sx, by, bw, H-by);
+      });
+      ctx.fillStyle = 'rgba(255,220,80,0.6)';
+      near.forEach(([bx,by,bw]) => {
+        const sx = ((bx - mOff*0.6) % W + W) % W;
+        for (let wy = by+8; wy < Math.min(by+80, H-30); wy += 14) {
+          for (let wx = 5; wx < bw-6; wx += 10) { ctx.fillRect(sx+wx, wy, 5, 7); }
+        }
+      });
+      return;
     }
   }
 
@@ -419,92 +699,240 @@
   // ── Trees ──────────────────────────────────────────────────────────────────
 
   function spawnTree() {
+    const theme = LEVELS[level].obstacleTheme;
+    let type;
+    if (theme === 'paris') type = 'lamppost';
+    else if (theme === 'canada') type = 'snow_pine';
+    else if (theme === 'kentucky') type = Math.random() < 0.4 ? 'oak' : 'fence_section';
+    else if (theme === 'michigan') type = Math.random() < 0.5 ? 'autumn_tree' : 'pine';
+    else if (theme === 'texas') type = Math.random() < 0.6 ? 'cactus_tree' : 'tumbleweed_tree';
+    else if (theme === 'arctic') type = 'ice_tree';
+    else if (theme === 'beach') type = 'palm';
+    else if (theme === 'city') type = 'streetlight';
+    else type = Math.random() < 0.55 ? 'pine' : 'oak';
     trees.push({
       x: W + 40 + Math.random() * 80,
-      type: Math.random() < 0.55 ? 'pine' : 'oak',
+      type,
       size: 90 + Math.random() * 70,
       lane: Math.random() < 0.7 ? 0 : 1,
     });
   }
 
   function drawPineTree(sx, sy, size) {
-    // Trunk
     ctx.fillStyle = '#4a2a15';
     const tw = size * 0.07;
     ctx.fillRect(sx - tw, sy - size * 0.18, tw * 2, size * 0.18);
-
-    // 3 foliage layers
     for (let i = 0; i < 3; i++) {
       const ly = sy - size * 0.18 - i * size * 0.22;
       const lw = size * (0.36 - i * 0.08);
       const lh = size * 0.28;
-      // Shadow layer
       ctx.fillStyle = ['#15401a', '#1a4c1f', '#1f5825'][i];
-      ctx.beginPath();
-      ctx.moveTo(sx, ly - lh);
-      ctx.lineTo(sx - lw, ly);
-      ctx.lineTo(sx + lw, ly);
-      ctx.closePath();
-      ctx.fill();
-      // Highlight
+      ctx.beginPath(); ctx.moveTo(sx, ly - lh); ctx.lineTo(sx - lw, ly); ctx.lineTo(sx + lw, ly); ctx.closePath(); ctx.fill();
       ctx.fillStyle = ['#1e5522', '#26652a', '#2e7832'][i];
-      ctx.beginPath();
-      ctx.moveTo(sx - 2, ly - lh + 4);
-      ctx.lineTo(sx - lw * 0.6, ly - 2);
-      ctx.lineTo(sx + 2, ly - lh + 4);
-      ctx.closePath();
-      ctx.fill();
+      ctx.beginPath(); ctx.moveTo(sx - 2, ly - lh + 4); ctx.lineTo(sx - lw * 0.6, ly - 2); ctx.lineTo(sx + 2, ly - lh + 4); ctx.closePath(); ctx.fill();
     }
   }
 
   function drawOakTree(sx, sy, size) {
-    // Trunk
     ctx.fillStyle = '#5a3a20';
     const tw = size * 0.06;
     ctx.fillRect(sx - tw, sy - size * 0.22, tw * 2, size * 0.22);
+    ctx.strokeStyle = '#4a2a15'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(sx - tw, sy - size * 0.15); ctx.lineTo(sx - size * 0.12, sy - size * 0.28);
+    ctx.moveTo(sx + tw, sy - size * 0.14); ctx.lineTo(sx + size * 0.15, sy - size * 0.26);
+    ctx.stroke();
+    const cy = sy - size * 0.38;
+    const puffs = [[0,0,size*0.2],[-size*0.14,0.04*size,size*0.17],[size*0.14,0.04*size,size*0.17],[0,-size*0.11,size*0.17],[-size*0.08,-size*0.07,size*0.14],[size*0.1,-size*0.05,size*0.15]];
+    ctx.fillStyle = '#1e5518'; puffs.forEach(([dx,dy,r]) => { ctx.beginPath(); ctx.arc(sx+dx, cy+dy+3, r, 0, Math.PI*2); ctx.fill(); });
+    ctx.fillStyle = '#2a6a22'; puffs.forEach(([dx,dy,r]) => { ctx.beginPath(); ctx.arc(sx+dx, cy+dy, r, 0, Math.PI*2); ctx.fill(); });
+    ctx.fillStyle = '#3a8a30'; puffs.slice(0,3).forEach(([dx,dy,r]) => { ctx.beginPath(); ctx.arc(sx+dx-2, cy+dy-3, r*0.55, 0, Math.PI*2); ctx.fill(); });
+  }
 
-    // Branch hints
-    ctx.strokeStyle = '#4a2a15';
+  function drawSnowPine(sx, sy, size) {
+    ctx.fillStyle = '#3a2515'; const tw = size * 0.07;
+    ctx.fillRect(sx - tw, sy - size * 0.18, tw * 2, size * 0.18);
+    for (let i = 0; i < 3; i++) {
+      const ly = sy - size * 0.18 - i * size * 0.22;
+      const lw = size * (0.34 - i * 0.08);
+      const lh = size * 0.26;
+      ctx.fillStyle = ['#1a3a20','#1e4425','#22502a'][i];
+      ctx.beginPath(); ctx.moveTo(sx, ly-lh); ctx.lineTo(sx-lw, ly); ctx.lineTo(sx+lw, ly); ctx.closePath(); ctx.fill();
+      // Snow on branches
+      ctx.fillStyle = 'rgba(230,240,250,0.7)';
+      ctx.beginPath(); ctx.moveTo(sx, ly-lh+3); ctx.lineTo(sx-lw*0.8, ly-2); ctx.lineTo(sx+lw*0.8, ly-2);
+      ctx.closePath(); ctx.fill();
+    }
+  }
+
+  function drawLamppost(sx, sy, size) {
+    const h = size * 0.6;
+    ctx.fillStyle = '#2a2a2a'; ctx.fillRect(sx-2, sy-h, 4, h);
+    // Ornate top
+    ctx.fillStyle = '#3a3a3a';
+    ctx.beginPath(); ctx.arc(sx, sy-h-2, 5, 0, Math.PI*2); ctx.fill();
+    // Light glow
+    ctx.globalAlpha = 0.3;
+    const glow = ctx.createRadialGradient(sx, sy-h-2, 2, sx, sy-h-2, 20);
+    glow.addColorStop(0, '#ffdd88'); glow.addColorStop(1, 'rgba(255,220,130,0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath(); ctx.arc(sx, sy-h-2, 20, 0, Math.PI*2); ctx.fill();
+    ctx.globalAlpha = 1;
+    // Lamp glass
+    ctx.fillStyle = '#ffee99';
+    ctx.beginPath(); ctx.arc(sx, sy-h-2, 3, 0, Math.PI*2); ctx.fill();
+  }
+
+  function drawIceTree(sx, sy, size) {
+    // Frozen dead tree
+    ctx.strokeStyle = '#5a7080'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(sx, sy-size*0.4); ctx.stroke();
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(sx - tw, sy - size * 0.15);
-    ctx.lineTo(sx - size * 0.12, sy - size * 0.28);
-    ctx.moveTo(sx + tw, sy - size * 0.14);
-    ctx.lineTo(sx + size * 0.15, sy - size * 0.26);
+    ctx.moveTo(sx, sy-size*0.25); ctx.lineTo(sx-size*0.15, sy-size*0.4);
+    ctx.moveTo(sx, sy-size*0.3); ctx.lineTo(sx+size*0.12, sy-size*0.42);
+    ctx.moveTo(sx, sy-size*0.35); ctx.lineTo(sx-size*0.08, sy-size*0.48);
     ctx.stroke();
+    // Ice crystals
+    ctx.fillStyle = 'rgba(180,220,240,0.5)';
+    ctx.beginPath(); ctx.arc(sx-size*0.12, sy-size*0.38, 5, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(sx+size*0.1, sy-size*0.4, 4, 0, Math.PI*2); ctx.fill();
+  }
 
-    // Canopy puffs
-    const cy = sy - size * 0.38;
-    const puffs = [
-      [0, 0, size * 0.2],
-      [-size * 0.14, 0.04 * size, size * 0.17],
-      [size * 0.14, 0.04 * size, size * 0.17],
-      [0, -size * 0.11, size * 0.17],
-      [-size * 0.08, -size * 0.07, size * 0.14],
-      [size * 0.1, -size * 0.05, size * 0.15],
-    ];
-    // Dark canopy
-    ctx.fillStyle = '#1e5518';
-    puffs.forEach(([dx, dy, r]) => {
-      ctx.beginPath(); ctx.arc(sx+dx, cy+dy+3, r, 0, Math.PI*2); ctx.fill();
+  function drawPalmTree(sx, sy, size) {
+    // Curved trunk
+    ctx.strokeStyle = '#8a6a30'; ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.moveTo(sx, sy);
+    ctx.quadraticCurveTo(sx+size*0.08, sy-size*0.3, sx+size*0.04, sy-size*0.55);
+    ctx.stroke();
+    // Trunk texture lines
+    ctx.strokeStyle = '#7a5a25'; ctx.lineWidth = 1;
+    for (let i = 0; i < 6; i++) {
+      const t = i/6; const ty = sy - size*0.55*t;
+      const tx = sx + size*0.08*t*(1-t)*4*0.5;
+      ctx.beginPath(); ctx.moveTo(tx-4, ty); ctx.lineTo(tx+4, ty); ctx.stroke();
+    }
+    // Palm fronds
+    const topX = sx + size*0.04, topY = sy - size*0.55;
+    const fronds = [[-0.6,-0.15],[0.5,-0.1],[-0.3,-0.3],[0.4,-0.25],[-0.1,-0.35],[0.2,-0.32],[-0.5,0.05],[0.6,0.08]];
+    fronds.forEach(([dx,dy]) => {
+      ctx.strokeStyle = '#2a7a22'; ctx.lineWidth = 2;
+      const fx = topX+dx*size*0.5, fy = topY+dy*size*0.5+size*0.15;
+      ctx.beginPath();
+      ctx.moveTo(topX, topY);
+      ctx.quadraticCurveTo(topX+dx*size*0.25, topY+dy*size*0.15-size*0.05, fx, fy);
+      ctx.stroke();
+      // Leaf segments
+      ctx.fillStyle = '#2a8a28';
+      for (let s = 0.3; s < 0.9; s += 0.15) {
+        const lx = topX+(fx-topX)*s, ly = topY+(fy-topY)*s-size*0.02*(1-s);
+        ctx.beginPath(); ctx.ellipse(lx, ly, 6, 2, Math.atan2(dy,dx), 0, Math.PI*2); ctx.fill();
+      }
     });
-    // Main canopy
-    ctx.fillStyle = '#2a6a22';
-    puffs.forEach(([dx, dy, r]) => {
+    // Coconuts
+    ctx.fillStyle = '#5a3a15';
+    ctx.beginPath(); ctx.arc(topX-3, topY+4, 3, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(topX+4, topY+5, 3, 0, Math.PI*2); ctx.fill();
+  }
+
+  function drawStreetlight(sx, sy, size) {
+    const h = size * 0.65;
+    ctx.fillStyle = '#3a3a3a'; ctx.fillRect(sx-2, sy-h, 4, h);
+    // Curved arm
+    ctx.strokeStyle = '#4a4a4a'; ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(sx, sy-h); ctx.quadraticCurveTo(sx+12, sy-h-5, sx+18, sy-h+8);
+    ctx.stroke();
+    // Light fixture
+    ctx.fillStyle = '#555'; ctx.fillRect(sx+14, sy-h+8, 8, 4);
+    // Light cone
+    ctx.globalAlpha = 0.15;
+    ctx.fillStyle = '#ffee88';
+    ctx.beginPath(); ctx.moveTo(sx+14, sy-h+12); ctx.lineTo(sx+6, sy); ctx.lineTo(sx+26, sy); ctx.lineTo(sx+22, sy-h+12); ctx.closePath(); ctx.fill();
+    ctx.globalAlpha = 1;
+    // Lamp
+    ctx.fillStyle = '#ffdd66';
+    ctx.beginPath(); ctx.arc(sx+18, sy-h+10, 2, 0, Math.PI*2); ctx.fill();
+  }
+
+  function drawFenceSection(sx, sy, size) {
+    ctx.fillStyle = '#ffffff';
+    const fh = size * 0.2;
+    ctx.fillRect(sx-2, sy-fh, 4, fh); ctx.fillRect(sx+25, sy-fh, 4, fh);
+    ctx.fillRect(sx-2, sy-fh*0.85, 29, 3); ctx.fillRect(sx-2, sy-fh*0.45, 29, 3);
+  }
+
+  function drawAutumnTree(sx, sy, size) {
+    ctx.fillStyle = '#5a3a1a';
+    const tw = size * 0.06;
+    ctx.fillRect(sx-tw, sy-size*0.22, tw*2, size*0.22);
+    const cy = sy - size*0.38;
+    const colors = ['#cc3300','#dd5522','#ee8822','#dd4411','#cc6600'];
+    const puffs = [[0,0,size*0.2],[-size*0.14,0.04*size,size*0.16],[size*0.13,0.03*size,size*0.17],[0,-size*0.1,size*0.15],[-size*0.08,-size*0.06,size*0.13],[size*0.09,-size*0.04,size*0.14]];
+    puffs.forEach(([dx,dy,r], i) => {
+      ctx.fillStyle = colors[i % colors.length];
       ctx.beginPath(); ctx.arc(sx+dx, cy+dy, r, 0, Math.PI*2); ctx.fill();
     });
+    ctx.fillStyle = '#ee9933';
+    puffs.slice(0,3).forEach(([dx,dy,r]) => { ctx.beginPath(); ctx.arc(sx+dx-2, cy+dy-3, r*0.4, 0, Math.PI*2); ctx.fill(); });
+  }
+
+  function drawCactusTree(sx, sy, size) {
+    const h = size * 0.45;
+    ctx.fillStyle = '#3a7a30';
+    // Main stem
+    ctx.beginPath();
+    ctx.moveTo(sx-5, sy); ctx.lineTo(sx-4, sy-h); ctx.lineTo(sx+4, sy-h); ctx.lineTo(sx+5, sy);
+    ctx.closePath(); ctx.fill();
+    // Left arm
+    ctx.beginPath();
+    ctx.moveTo(sx-5, sy-h*0.5); ctx.lineTo(sx-14, sy-h*0.5); ctx.lineTo(sx-14, sy-h*0.8); ctx.lineTo(sx-10, sy-h*0.8); ctx.lineTo(sx-10, sy-h*0.45); ctx.lineTo(sx-5, sy-h*0.45);
+    ctx.closePath(); ctx.fill();
+    // Right arm
+    ctx.beginPath();
+    ctx.moveTo(sx+5, sy-h*0.6); ctx.lineTo(sx+12, sy-h*0.6); ctx.lineTo(sx+12, sy-h*0.9); ctx.lineTo(sx+8, sy-h*0.9); ctx.lineTo(sx+8, sy-h*0.55); ctx.lineTo(sx+5, sy-h*0.55);
+    ctx.closePath(); ctx.fill();
     // Highlights
-    ctx.fillStyle = '#3a8a30';
-    puffs.slice(0, 3).forEach(([dx, dy, r]) => {
-      ctx.beginPath(); ctx.arc(sx+dx-2, cy+dy-3, r*0.55, 0, Math.PI*2); ctx.fill();
-    });
+    ctx.fillStyle = '#4a9a40';
+    ctx.fillRect(sx-2, sy-h+3, 2, h-6);
+  }
+
+  function drawTumbleweedTree(sx, sy, size) {
+    // A static tumbleweed (decoration, not obstacle)
+    const r = size * 0.1;
+    ctx.strokeStyle = '#8a7a50'; ctx.lineWidth = 1;
+    ctx.globalAlpha = 0.5;
+    for (let i = 0; i < 8; i++) {
+      const a = i * Math.PI / 4;
+      ctx.beginPath();
+      ctx.arc(sx + Math.cos(a)*r*0.5, sy-r + Math.sin(a)*r*0.5, r*0.4, 0, Math.PI*2);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#9a8a60';
+    ctx.beginPath(); ctx.arc(sx, sy-r, r, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#8a7a50';
+    ctx.beginPath(); ctx.arc(sx, sy-r, r*0.7, 0, Math.PI*2); ctx.fill();
   }
 
   function drawTrees() {
     trees.forEach(t => {
       const groundY = t.lane === 0 ? lowerAt(t.x) : upperAt(t.x);
-      if (t.type === 'pine') drawPineTree(t.x, groundY, t.size);
-      else drawOakTree(t.x, groundY, t.size);
+      switch(t.type) {
+        case 'pine': drawPineTree(t.x, groundY, t.size); break;
+        case 'oak': drawOakTree(t.x, groundY, t.size); break;
+        case 'snow_pine': drawSnowPine(t.x, groundY, t.size); break;
+        case 'lamppost': drawLamppost(t.x, groundY, t.size); break;
+        case 'ice_tree': drawIceTree(t.x, groundY, t.size); break;
+        case 'palm': drawPalmTree(t.x, groundY, t.size); break;
+        case 'streetlight': drawStreetlight(t.x, groundY, t.size); break;
+        case 'fence_section': drawFenceSection(t.x, groundY, t.size); break;
+        case 'autumn_tree': drawAutumnTree(t.x, groundY, t.size); break;
+        case 'cactus_tree': drawCactusTree(t.x, groundY, t.size); break;
+        case 'tumbleweed_tree': drawTumbleweedTree(t.x, groundY, t.size); break;
+        default: drawPineTree(t.x, groundY, t.size);
+      }
     });
   }
 
@@ -945,6 +1373,85 @@
     return false;
   }
 
+  // ── Hazard Cars (NYC Level) ────────────────────────────────────────────────
+
+  function spawnHazardCar() {
+    const lane = Math.random() < 0.5 ? 0 : 1;
+    hazardCars.push({
+      x: W + 80,
+      lane,
+      speed: speed * 1.8 + Math.random() * 2,
+      w: 70,
+      h: 35,
+      color: ['#ffcc00','#ffcc00','#ffcc00','#ffcc00','#3366dd','#ffffff'][Math.floor(Math.random()*6)], // mostly yellow cabs!
+    });
+  }
+
+  function updateHazardCars() {
+    hazardCars.forEach(c => { c.x -= c.speed; });
+    hazardCars = hazardCars.filter(c => c.x + c.w > -30);
+  }
+
+  function drawHazardCars() {
+    hazardCars.forEach(c => {
+      const gy = c.lane === 0 ? lowerAt(c.x) : upperAt(c.x);
+      const y = gy - c.h;
+      const x = c.x, w = c.w, h = c.h;
+      // Shadow
+      ctx.fillStyle = 'rgba(0,0,0,0.2)';
+      ctx.beginPath(); ctx.ellipse(x+w/2, gy+2, w*0.45, 3, 0, 0, Math.PI*2); ctx.fill();
+      // Car body
+      ctx.fillStyle = c.color;
+      ctx.beginPath(); ctx.roundRect(x, y+h*0.35, w, h*0.55, 4); ctx.fill();
+      // Roof
+      ctx.beginPath();
+      ctx.moveTo(x+w*0.15, y+h*0.35); ctx.lineTo(x+w*0.25, y+h*0.05);
+      ctx.lineTo(x+w*0.7, y+h*0.05); ctx.lineTo(x+w*0.8, y+h*0.35);
+      ctx.closePath(); ctx.fill();
+      // Windows
+      ctx.fillStyle = '#aaddff';
+      ctx.beginPath();
+      ctx.moveTo(x+w*0.2, y+h*0.35); ctx.lineTo(x+w*0.27, y+h*0.1);
+      ctx.lineTo(x+w*0.45, y+h*0.1); ctx.lineTo(x+w*0.45, y+h*0.35);
+      ctx.closePath(); ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(x+w*0.5, y+h*0.35); ctx.lineTo(x+w*0.5, y+h*0.1);
+      ctx.lineTo(x+w*0.68, y+h*0.1); ctx.lineTo(x+w*0.75, y+h*0.35);
+      ctx.closePath(); ctx.fill();
+      // Wheels
+      ctx.fillStyle = '#222';
+      ctx.beginPath(); ctx.arc(x+w*0.2, y+h*0.9, h*0.14, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(x+w*0.8, y+h*0.9, h*0.14, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#888';
+      ctx.beginPath(); ctx.arc(x+w*0.2, y+h*0.9, h*0.05, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(x+w*0.8, y+h*0.9, h*0.05, 0, Math.PI*2); ctx.fill();
+      // Taxi sign (if yellow)
+      if (c.color === '#ffcc00') {
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.roundRect(x+w*0.4, y-2, w*0.2, 7, 2); ctx.fill();
+        ctx.fillStyle = '#222'; ctx.font = '5px Arial';
+        ctx.fillText('TAXI', x+w*0.41, y+4);
+      }
+      // Headlights
+      ctx.fillStyle = '#ffee88';
+      ctx.beginPath(); ctx.arc(x+2, y+h*0.5, 2.5, 0, Math.PI*2); ctx.fill();
+      // Taillights
+      ctx.fillStyle = '#ff3333';
+      ctx.beginPath(); ctx.arc(x+w-2, y+h*0.5, 2.5, 0, Math.PI*2); ctx.fill();
+    });
+  }
+
+  function checkCarCollision() {
+    for (const c of hazardCars) {
+      if (c.lane !== horse.lane) continue;
+      const gy = c.lane === 0 ? lowerAt(c.x) : upperAt(c.x);
+      const cy = gy - c.h;
+      const hx = hsx - 20, hy = horse.y - 100, hw = 60, hh = 100;
+      if (hx < c.x + c.w && hx + hw > c.x && hy < cy + c.h && hy + hh > cy) return true;
+    }
+    return false;
+  }
+
   // ── Obstacles ──────────────────────────────────────────────────────────────
 
   function drawBoulder(x, y, w, h) {
@@ -991,6 +1498,330 @@
     ctx.strokeStyle = '#7a4828'; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.ellipse(x+7, y+h/2, 5, h/2-5, 0, 0, Math.PI*2); ctx.stroke();
     ctx.beginPath(); ctx.ellipse(x+7, y+h/2, 3, h/2-8, 0, 0, Math.PI*2); ctx.stroke();
+  }
+
+  // ── Themed obstacle drawing ─────────────────────────────────────────────
+
+  function drawCafeTable(x, y, w, h) {
+    // Small round café table with red/white checkered cloth
+    ctx.fillStyle = '#3a2a18'; // legs
+    ctx.fillRect(x+w*0.3, y+h*0.5, 3, h*0.5); ctx.fillRect(x+w*0.6, y+h*0.5, 3, h*0.5);
+    ctx.fillStyle = '#8a4422'; // table top
+    ctx.beginPath(); ctx.ellipse(x+w*0.5, y+h*0.4, w*0.5, h*0.15, 0, 0, Math.PI*2); ctx.fill();
+    // Checkered cloth
+    ctx.fillStyle = '#cc2222';
+    ctx.beginPath(); ctx.ellipse(x+w*0.5, y+h*0.38, w*0.45, h*0.12, 0, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    for (let i = 0; i < 4; i++) {
+      ctx.beginPath(); ctx.ellipse(x+w*0.3+i*w*0.12, y+h*0.38, w*0.05, h*0.06, 0, 0, Math.PI*2); ctx.fill();
+    }
+    // Coffee cup on top
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(x+w*0.4, y+h*0.15, 8, 10);
+    ctx.fillStyle = '#6a3a15';
+    ctx.fillRect(x+w*0.4+1, y+h*0.15+1, 6, 5);
+  }
+
+  function drawFlowerCart(x, y, w, h) {
+    // Wooden cart with colorful flowers
+    ctx.fillStyle = '#6a4a28'; // cart body
+    ctx.beginPath(); ctx.roundRect(x+2, y+h*0.3, w-4, h*0.5, 3); ctx.fill();
+    // Wheels
+    ctx.fillStyle = '#4a3018';
+    ctx.beginPath(); ctx.arc(x+w*0.2, y+h-2, 5, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x+w*0.8, y+h-2, 5, 0, Math.PI*2); ctx.fill();
+    // Flowers (colorful puffs on top)
+    const fcolors = ['#ff4466','#ffaa22','#ff66aa','#ffdd44','#ff6644','#dd44ff'];
+    for (let i = 0; i < 5; i++) {
+      ctx.fillStyle = fcolors[i];
+      ctx.beginPath(); ctx.arc(x+6+i*(w-12)/4, y+h*0.2, 6, 0, Math.PI*2); ctx.fill();
+    }
+    // Leaves
+    ctx.fillStyle = '#2a8a22';
+    for (let i = 0; i < 4; i++) {
+      ctx.beginPath(); ctx.ellipse(x+10+i*(w-16)/3, y+h*0.32, 5, 3, 0.3, 0, Math.PI*2); ctx.fill();
+    }
+  }
+
+  function drawIceChunk(x, y, w, h) {
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.beginPath(); ctx.ellipse(x+w/2, y+h+2, w*0.4, 4, 0, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#8ab8cc';
+    ctx.beginPath(); ctx.moveTo(x, y+h); ctx.lineTo(x+w*0.2, y); ctx.lineTo(x+w*0.5, y+h*0.1);
+    ctx.lineTo(x+w*0.8, y-h*0.05); ctx.lineTo(x+w, y+h); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#aad8ee';
+    ctx.beginPath(); ctx.moveTo(x+w*0.1, y+h*0.6); ctx.lineTo(x+w*0.25, y+h*0.1);
+    ctx.lineTo(x+w*0.45, y+h*0.2); ctx.lineTo(x+w*0.3, y+h*0.7); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.beginPath(); ctx.ellipse(x+w*0.3, y+h*0.3, w*0.08, h*0.06, -0.3, 0, Math.PI*2); ctx.fill();
+  }
+
+  function drawSnowLog(x, y, w, h) {
+    drawLog(x, y, w, h);
+    ctx.fillStyle = 'rgba(230,240,250,0.7)';
+    ctx.beginPath(); ctx.ellipse(x+w*0.5, y+3, w*0.45, h*0.2, 0, 0, Math.PI*2); ctx.fill();
+  }
+
+  function drawHayBale(x, y, w, h) {
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.beginPath(); ctx.ellipse(x+w/2, y+h+2, w*0.4, 4, 0, 0, Math.PI*2); ctx.fill();
+    // Round hay bale
+    ctx.fillStyle = '#c8a840';
+    ctx.beginPath(); ctx.ellipse(x+w*0.5, y+h*0.5, w*0.48, h*0.48, 0, 0, Math.PI*2); ctx.fill();
+    // Spiral pattern
+    ctx.strokeStyle = '#a88830'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.ellipse(x+w*0.5, y+h*0.5, w*0.3, h*0.3, 0, 0, Math.PI*2); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(x+w*0.5, y+h*0.5, w*0.15, h*0.15, 0, 0, Math.PI*2); ctx.stroke();
+    // Straw texture
+    ctx.fillStyle = '#ddc050';
+    ctx.beginPath(); ctx.ellipse(x+w*0.35, y+h*0.3, w*0.1, h*0.06, 0.5, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#b89838';
+    ctx.beginPath(); ctx.ellipse(x+w*0.6, y+h*0.65, w*0.08, h*0.05, -0.3, 0, Math.PI*2); ctx.fill();
+  }
+
+  function drawWoodenCrate(x, y, w, h) {
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.beginPath(); ctx.ellipse(x+w/2, y+h+2, w*0.4, 4, 0, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#8a6430';
+    ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = '#9a7440';
+    ctx.fillRect(x+2, y+2, w-4, h*0.45);
+    // Planks
+    ctx.strokeStyle = '#6a4a20'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x, y+h*0.5); ctx.lineTo(x+w, y+h*0.5); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x+w*0.33, y); ctx.lineTo(x+w*0.33, y+h); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x+w*0.67, y); ctx.lineTo(x+w*0.67, y+h); ctx.stroke();
+    // Nails
+    ctx.fillStyle = '#aaa';
+    ctx.beginPath(); ctx.arc(x+w*0.33, y+h*0.25, 1.5, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x+w*0.67, y+h*0.75, 1.5, 0, Math.PI*2); ctx.fill();
+  }
+
+  function drawDeer(x, y, w, h) {
+    ctx.fillStyle = 'rgba(0,0,0,0.15)';
+    ctx.beginPath(); ctx.ellipse(x+w/2, y+h+2, w*0.35, 3, 0, 0, Math.PI*2); ctx.fill();
+    // Body
+    ctx.fillStyle = '#8a6030';
+    ctx.beginPath(); ctx.ellipse(x+w*0.5, y+h*0.55, w*0.4, h*0.3, 0, 0, Math.PI*2); ctx.fill();
+    // Legs
+    ctx.fillRect(x+w*0.2, y+h*0.7, 3, h*0.3); ctx.fillRect(x+w*0.35, y+h*0.7, 3, h*0.3);
+    ctx.fillRect(x+w*0.6, y+h*0.7, 3, h*0.3); ctx.fillRect(x+w*0.72, y+h*0.7, 3, h*0.3);
+    // Head
+    ctx.beginPath(); ctx.arc(x+w*0.8, y+h*0.3, h*0.18, 0, Math.PI*2); ctx.fill();
+    // Neck
+    ctx.fillRect(x+w*0.65, y+h*0.3, w*0.12, h*0.25);
+    // Antlers
+    ctx.strokeStyle = '#6a4a20'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(x+w*0.78, y+h*0.18); ctx.lineTo(x+w*0.7, y); ctx.lineTo(x+w*0.65, y+h*0.05); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x+w*0.85, y+h*0.18); ctx.lineTo(x+w*0.92, y+h*0.02); ctx.lineTo(x+w*0.98, y+h*0.08); ctx.stroke();
+    // White belly
+    ctx.fillStyle = '#c8a870';
+    ctx.beginPath(); ctx.ellipse(x+w*0.5, y+h*0.65, w*0.3, h*0.12, 0, 0, Math.PI*2); ctx.fill();
+    // Eye
+    ctx.fillStyle = '#222';
+    ctx.beginPath(); ctx.arc(x+w*0.83, y+h*0.28, 2, 0, Math.PI*2); ctx.fill();
+  }
+
+  function drawPumpkin(x, y, w, h) {
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.beginPath(); ctx.ellipse(x+w/2, y+h+2, w*0.35, 3, 0, 0, Math.PI*2); ctx.fill();
+    // Pumpkin body (overlapping circles for ridges)
+    ctx.fillStyle = '#dd6600';
+    ctx.beginPath(); ctx.ellipse(x+w*0.5, y+h*0.55, w*0.48, h*0.45, 0, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#cc5500';
+    ctx.beginPath(); ctx.ellipse(x+w*0.35, y+h*0.55, w*0.25, h*0.42, 0, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(x+w*0.65, y+h*0.55, w*0.25, h*0.42, 0, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#ee7711';
+    ctx.beginPath(); ctx.ellipse(x+w*0.5, y+h*0.5, w*0.2, h*0.38, 0, 0, Math.PI*2); ctx.fill();
+    // Stem
+    ctx.fillStyle = '#4a6a20';
+    ctx.fillRect(x+w*0.45, y+h*0.05, 5, 8);
+    // Highlight
+    ctx.fillStyle = 'rgba(255,200,100,0.3)';
+    ctx.beginPath(); ctx.ellipse(x+w*0.4, y+h*0.35, w*0.1, h*0.15, -0.3, 0, Math.PI*2); ctx.fill();
+  }
+
+  function drawCactusObs(x, y, w, h) {
+    ctx.fillStyle = 'rgba(0,0,0,0.15)';
+    ctx.beginPath(); ctx.ellipse(x+w/2, y+h+2, w*0.3, 3, 0, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#2a6a22';
+    ctx.beginPath();
+    ctx.moveTo(x+w*0.3, y+h); ctx.lineTo(x+w*0.3, y+h*0.1); ctx.lineTo(x+w*0.7, y+h*0.1); ctx.lineTo(x+w*0.7, y+h);
+    ctx.closePath(); ctx.fill();
+    // Arms
+    ctx.fillRect(x, y+h*0.3, w*0.3, h*0.12);
+    ctx.fillRect(x, y+h*0.15, w*0.12, h*0.27);
+    ctx.fillRect(x+w*0.7, y+h*0.4, w*0.3, h*0.12);
+    ctx.fillRect(x+w*0.88, y+h*0.2, w*0.12, h*0.32);
+    // Spines
+    ctx.strokeStyle = '#aaccaa'; ctx.lineWidth = 0.5;
+    for (let i = 0; i < 5; i++) {
+      const sy = y+h*0.15+i*h*0.15;
+      ctx.beginPath(); ctx.moveTo(x+w*0.3, sy); ctx.lineTo(x+w*0.25, sy-3); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x+w*0.7, sy); ctx.lineTo(x+w*0.75, sy-3); ctx.stroke();
+    }
+    ctx.fillStyle = '#3a8a30';
+    ctx.beginPath(); ctx.ellipse(x+w*0.5, y+h*0.5, w*0.1, h*0.3, 0, 0, Math.PI*2); ctx.fill();
+  }
+
+  function drawRattlesnake(x, y, w, h) {
+    ctx.fillStyle = 'rgba(0,0,0,0.1)';
+    ctx.beginPath(); ctx.ellipse(x+w/2, y+h+1, w*0.4, 3, 0, 0, Math.PI*2); ctx.fill();
+    // Coiled snake body
+    ctx.strokeStyle = '#8a6a30'; ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.moveTo(x, y+h*0.7);
+    ctx.bezierCurveTo(x+w*0.2, y+h*0.3, x+w*0.3, y+h, x+w*0.5, y+h*0.5);
+    ctx.bezierCurveTo(x+w*0.7, y, x+w*0.8, y+h*0.8, x+w, y+h*0.4);
+    ctx.stroke();
+    // Diamond pattern
+    ctx.strokeStyle = '#5a4a20'; ctx.lineWidth = 2;
+    for (let i = 0; i < 4; i++) {
+      const sx = x+w*0.15+i*w*0.2;
+      const sy2 = y+h*0.5 + Math.sin(i*1.5)*h*0.2;
+      ctx.beginPath(); ctx.moveTo(sx, sy2-3); ctx.lineTo(sx+5, sy2); ctx.lineTo(sx, sy2+3); ctx.lineTo(sx-5, sy2); ctx.closePath(); ctx.stroke();
+    }
+    // Head (raised, ready to strike)
+    ctx.fillStyle = '#7a5a28';
+    ctx.beginPath(); ctx.arc(x+w*0.95, y+h*0.3, 5, 0, Math.PI*2); ctx.fill();
+    // Eyes
+    ctx.fillStyle = '#ff4444';
+    ctx.beginPath(); ctx.arc(x+w*0.97, y+h*0.28, 1.5, 0, Math.PI*2); ctx.fill();
+    // Rattle tail
+    ctx.fillStyle = '#aa8a50';
+    for (let i = 0; i < 3; i++) {
+      ctx.beginPath(); ctx.arc(x+4+i*4, y+h*0.7+i*2, 3-i*0.5, 0, Math.PI*2); ctx.fill();
+    }
+  }
+
+  function drawIceBlock(x, y, w, h) {
+    ctx.fillStyle = 'rgba(0,0,0,0.15)';
+    ctx.beginPath(); ctx.ellipse(x+w/2, y+h+2, w*0.4, 4, 0, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#7aaabb';
+    ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = '#9accdd';
+    ctx.fillRect(x+3, y+3, w*0.6, h*0.4);
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.beginPath(); ctx.ellipse(x+w*0.3, y+h*0.3, w*0.12, h*0.1, -0.3, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#6a99aa';
+    ctx.beginPath(); ctx.moveTo(x+w*0.5, y+h*0.4); ctx.lineTo(x+w*0.7, y+h); ctx.lineTo(x+w*0.3, y+h); ctx.closePath(); ctx.fill();
+  }
+
+  function drawSnowDrift(x, y, w, h) {
+    ctx.fillStyle = 'rgba(0,0,0,0.1)';
+    ctx.beginPath(); ctx.ellipse(x+w/2, y+h+2, w*0.45, 3, 0, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#d8e8f0';
+    ctx.beginPath(); ctx.ellipse(x+w*0.5, y+h*0.6, w*0.5, h*0.45, 0, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#e8f4ff';
+    ctx.beginPath(); ctx.ellipse(x+w*0.45, y+h*0.5, w*0.35, h*0.3, -0.1, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.beginPath(); ctx.ellipse(x+w*0.35, y+h*0.4, w*0.1, h*0.08, 0, 0, Math.PI*2); ctx.fill();
+  }
+
+  function drawBodyboarder(x, y, w, h) {
+    ctx.fillStyle = 'rgba(0,0,0,0.15)';
+    ctx.beginPath(); ctx.ellipse(x+w/2, y+h+2, w*0.4, 3, 0, 0, Math.PI*2); ctx.fill();
+    // Board
+    const boardColors = ['#ff4488','#44aaff','#ffaa22','#44dd66'];
+    ctx.fillStyle = boardColors[Math.floor(x)%boardColors.length];
+    ctx.beginPath(); ctx.ellipse(x+w*0.5, y+h*0.7, w*0.48, h*0.2, 0, 0, Math.PI*2); ctx.fill();
+    // Person lying on board
+    ctx.fillStyle = '#dda888'; // skin
+    ctx.beginPath(); ctx.arc(x+w*0.75, y+h*0.4, 7, 0, Math.PI*2); ctx.fill(); // head
+    // Wetsuit body
+    ctx.fillStyle = '#222';
+    ctx.beginPath();
+    ctx.ellipse(x+w*0.5, y+h*0.55, w*0.3, h*0.18, 0, 0, Math.PI*2);
+    ctx.fill();
+    // Arms paddling
+    ctx.strokeStyle = '#dda888'; ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(x+w*0.3, y+h*0.5);
+    ctx.lineTo(x+w*0.15, y+h*0.75);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x+w*0.65, y+h*0.45);
+    ctx.lineTo(x+w*0.8, y+h*0.7);
+    ctx.stroke();
+  }
+
+  function drawFireHydrant(x, y, w, h) {
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.beginPath(); ctx.ellipse(x+w/2, y+h+2, w*0.3, 3, 0, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#cc2222';
+    ctx.beginPath(); ctx.roundRect(x+w*0.2, y+h*0.15, w*0.6, h*0.85, 4); ctx.fill();
+    // Cap
+    ctx.fillStyle = '#dd3333';
+    ctx.beginPath(); ctx.roundRect(x+w*0.15, y, w*0.7, h*0.25, [5,5,0,0]); ctx.fill();
+    // Side nozzles
+    ctx.fillStyle = '#aa1818';
+    ctx.fillRect(x, y+h*0.35, w*0.25, h*0.15);
+    ctx.fillRect(x+w*0.75, y+h*0.35, w*0.25, h*0.15);
+    // Chain detail
+    ctx.strokeStyle = '#888'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(x+w*0.5, y+h*0.15, 4, 0, Math.PI*2); ctx.stroke();
+    // Highlight
+    ctx.fillStyle = 'rgba(255,150,150,0.3)';
+    ctx.fillRect(x+w*0.3, y+h*0.2, w*0.15, h*0.6);
+  }
+
+  function drawTrashCan(x, y, w, h) {
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.beginPath(); ctx.ellipse(x+w/2, y+h+2, w*0.35, 3, 0, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#4a6a4a';
+    ctx.beginPath(); ctx.roundRect(x+2, y+h*0.12, w-4, h*0.88, 3); ctx.fill();
+    // Lid
+    ctx.fillStyle = '#3a5a3a';
+    ctx.beginPath(); ctx.roundRect(x, y, w, h*0.15, [4,4,0,0]); ctx.fill();
+    // Handle
+    ctx.strokeStyle = '#2a4a2a'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(x+w*0.5, y+h*0.06, 5, Math.PI, 0); ctx.stroke();
+    // Ribbed texture
+    ctx.strokeStyle = '#3a5a3a'; ctx.lineWidth = 1;
+    for (let i = 0; i < 3; i++) {
+      const ry = y+h*0.3+i*h*0.22;
+      ctx.beginPath(); ctx.moveTo(x+4, ry); ctx.lineTo(x+w-4, ry); ctx.stroke();
+    }
+  }
+
+  function drawCar(x, y, w, h) {
+    const carColors = ['#dd3333','#3366dd','#dddd33','#33aa33','#dd6633','#8833aa'];
+    const color = carColors[Math.floor(x*7)%carColors.length];
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.beginPath(); ctx.ellipse(x+w/2, y+h+2, w*0.45, 3, 0, 0, Math.PI*2); ctx.fill();
+    // Car body
+    ctx.fillStyle = color;
+    ctx.beginPath(); ctx.roundRect(x, y+h*0.35, w, h*0.55, 4); ctx.fill();
+    // Roof/cabin
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(x+w*0.2, y+h*0.35); ctx.lineTo(x+w*0.3, y+h*0.05);
+    ctx.lineTo(x+w*0.75, y+h*0.05); ctx.lineTo(x+w*0.85, y+h*0.35);
+    ctx.closePath(); ctx.fill();
+    // Windows
+    ctx.fillStyle = '#aaddff';
+    ctx.beginPath();
+    ctx.moveTo(x+w*0.25, y+h*0.35); ctx.lineTo(x+w*0.32, y+h*0.1);
+    ctx.lineTo(x+w*0.48, y+h*0.1); ctx.lineTo(x+w*0.48, y+h*0.35);
+    ctx.closePath(); ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(x+w*0.52, y+h*0.35); ctx.lineTo(x+w*0.52, y+h*0.1);
+    ctx.lineTo(x+w*0.72, y+h*0.1); ctx.lineTo(x+w*0.8, y+h*0.35);
+    ctx.closePath(); ctx.fill();
+    // Wheels
+    ctx.fillStyle = '#222';
+    ctx.beginPath(); ctx.arc(x+w*0.22, y+h*0.9, h*0.15, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x+w*0.78, y+h*0.9, h*0.15, 0, Math.PI*2); ctx.fill();
+    // Hubcaps
+    ctx.fillStyle = '#888';
+    ctx.beginPath(); ctx.arc(x+w*0.22, y+h*0.9, h*0.06, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x+w*0.78, y+h*0.9, h*0.06, 0, Math.PI*2); ctx.fill();
+    // Headlights
+    ctx.fillStyle = '#ffee88';
+    ctx.beginPath(); ctx.arc(x+w-2, y+h*0.5, 3, 0, Math.PI*2); ctx.fill();
+    // Taillights
+    ctx.fillStyle = '#ff3333';
+    ctx.beginPath(); ctx.arc(x+2, y+h*0.5, 3, 0, Math.PI*2); ctx.fill();
   }
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -1403,16 +2234,65 @@
     const lane = Math.random() < 0.5 ? 0 : 1;
     const r = Math.random();
     let w, h, type;
-    if (LEVELS[level].smallOnly) {
-      // Level 1: only small obstacles
-      if (r < 0.5) { w=44; h=40; type='boulder'; }
-      else         { w=40; h=30; type='log'; }
+    const theme = LEVELS[level].obstacleTheme;
+
+    if (theme === 'paris') {
+      // Café tables and flower carts
+      if (LEVELS[level].smallOnly) {
+        if (r < 0.5) { w=40; h=35; type='cafe_table'; }
+        else         { w=38; h=30; type='flower_cart'; }
+      } else {
+        if (r < 0.5) { w=48; h=42; type='cafe_table'; }
+        else         { w=55; h=40; type='flower_cart'; }
+      }
+    } else if (theme === 'canada') {
+      // Ice chunks and snow logs
+      if (LEVELS[level].smallOnly) {
+        if (r < 0.5) { w=42; h=38; type='ice_chunk'; }
+        else         { w=40; h=28; type='snow_log'; }
+      } else {
+        if (r < 0.5) { w=55; h=48; type='ice_chunk'; }
+        else         { w=52; h=30; type='snow_log'; }
+      }
+    } else if (theme === 'kentucky') {
+      // Hay bales and wooden crates
+      if (LEVELS[level].smallOnly) {
+        if (r < 0.5) { w=44; h=38; type='hay_bale'; }
+        else         { w=38; h=35; type='wooden_crate'; }
+      } else {
+        if (r < 0.5) { w=55; h=48; type='hay_bale'; }
+        else         { w=45; h=42; type='wooden_crate'; }
+      }
+    } else if (theme === 'michigan') {
+      // Deer and pumpkins
+      if (r < 0.5) { w=50; h=48; type='deer'; }
+      else         { w=40; h=35; type='pumpkin'; }
+    } else if (theme === 'texas') {
+      // Cactus obstacles and rattlesnakes
+      if (r < 0.5) { w=35; h=50; type='cactus_obs'; }
+      else         { w=50; h=25; type='rattlesnake'; }
+    } else if (theme === 'arctic') {
+      // Ice blocks and snow drifts
+      if (r < 0.5) { w=50; h=45; type='ice_block'; }
+      else         { w=55; h=30; type='snow_drift'; }
+    } else if (theme === 'beach') {
+      // Bodyboarders
+      w = 55; h = 35; type = 'bodyboarder';
+    } else if (theme === 'city') {
+      // Cars (handled by car hazard system, but also normal obstacles)
+      w = 60; h = 35; type = 'fire_hydrant';
+      if (r > 0.5) { w = 40; h = 45; type = 'trash_can'; }
     } else {
-      // Level 2: all sizes
-      if (r < 0.28)      { w=44; h=40; type='boulder'; }
-      else if (r < 0.52) { w=62; h=56; type='boulder'; }
-      else if (r < 0.76) { w=58; h=30; type='log'; }
-      else               { w=40; h=50; type='log'; }
+      // Default mountain obstacles
+      if (LEVELS[level].smallOnly) {
+        if (r < 0.5) { w=44; h=40; type='boulder'; }
+        else         { w=40; h=30; type='log'; }
+      } else {
+        if (r < 0.28)      { w=44; h=40; type='boulder'; }
+        else if (r < 0.52) { w=62; h=56; type='boulder'; }
+        else if (r < 0.76) { w=58; h=30; type='log'; }
+        else               { w=40; h=50; type='log'; }
+      }
     }
     if (lane === 1) { w = Math.round(w*0.82); h = Math.round(h*0.82); }
     obstacles.push({ x: W+20, w, h, type, lane });
@@ -1446,7 +2326,7 @@
         worldOffset = LEVELS[level].finishAt; // snap exactly to finish
         state = 'won';
         // Clear all hazards
-        obstacles = []; lavaFlows = []; rollingBoulders = []; apples = [];
+        obstacles = []; lavaFlows = []; rollingBoulders = []; hazardCars = []; apples = [];
         spawnConfetti();
         // Victory jump + neigh!
         horse.vy = -11; horse.onGround = false;
@@ -1594,6 +2474,25 @@
         }
       }
 
+      // Hazard cars (NYC level)
+      if (LEVELS[level].hazard === 'cars') {
+        nextCarIn--;
+        if (nextCarIn <= 0) {
+          spawnHazardCar();
+          nextCarIn = 55 + Math.random() * 70;
+        }
+        updateHazardCars();
+      }
+
+      // Car collision
+      if (LEVELS[level].hazard === 'cars' && state === 'playing' && checkCarCollision()) {
+        state = 'dead'; stateTime = Date.now();
+        if (score > highScore) {
+          highScore = score;
+          localStorage.setItem('ravenHighScore', String(highScore));
+        }
+      }
+
     }
 
     // Victory jump physics (let horse land after celebration jump)
@@ -1630,13 +2529,33 @@
     // Draw obstacles on terrain
     obstacles.forEach(o => {
       const gy = o.lane === 0 ? lowerAt(o.x) : upperAt(o.x);
-      if (o.type === 'boulder') drawBoulder(o.x, gy - o.h, o.w, o.h);
-      else drawLog(o.x, gy - o.h, o.w, o.h);
+      const ox = o.x, oy = gy - o.h, ow = o.w, oh = o.h;
+      switch(o.type) {
+        case 'boulder': drawBoulder(ox, oy, ow, oh); break;
+        case 'log': drawLog(ox, oy, ow, oh); break;
+        case 'cafe_table': drawCafeTable(ox, oy, ow, oh); break;
+        case 'flower_cart': drawFlowerCart(ox, oy, ow, oh); break;
+        case 'ice_chunk': drawIceChunk(ox, oy, ow, oh); break;
+        case 'snow_log': drawSnowLog(ox, oy, ow, oh); break;
+        case 'hay_bale': drawHayBale(ox, oy, ow, oh); break;
+        case 'wooden_crate': drawWoodenCrate(ox, oy, ow, oh); break;
+        case 'deer': drawDeer(ox, oy, ow, oh); break;
+        case 'pumpkin': drawPumpkin(ox, oy, ow, oh); break;
+        case 'cactus_obs': drawCactusObs(ox, oy, ow, oh); break;
+        case 'rattlesnake': drawRattlesnake(ox, oy, ow, oh); break;
+        case 'ice_block': drawIceBlock(ox, oy, ow, oh); break;
+        case 'snow_drift': drawSnowDrift(ox, oy, ow, oh); break;
+        case 'bodyboarder': drawBodyboarder(ox, oy, ow, oh); break;
+        case 'fire_hydrant': drawFireHydrant(ox, oy, ow, oh); break;
+        case 'trash_can': drawTrashCan(ox, oy, ow, oh); break;
+        default: drawBoulder(ox, oy, ow, oh);
+      }
     });
 
     drawApples();
     if (LEVELS[level].hazard === 'boulders' || LEVELS[level].hazard === 'both') drawRollingBoulders();
     if (LEVELS[level].hazard === 'lava' || LEVELS[level].hazard === 'both') drawLava();
+    if (LEVELS[level].hazard === 'cars') drawHazardCars();
     drawRaven(hsx, horse.y, horse.gallopT, horse.jumpPhase, horse.jumpT, state === 'playing');
     drawCollectFx();
     drawDust();
@@ -1648,7 +2567,7 @@
 
     if (state === 'waiting') {
       drawOverlay(
-        ['\uD83D\uDC0E  Wild Stallion \u2014 Raven', 'Press 1-6 to pick a level  |  SPACE to start', 'SPACE = jump  |  \u2191 \u2193 = switch paths'],
+        ['\uD83D\uDC0E  Wild Stallion \u2014 Raven', 'Press 1-8 to pick a level  |  SPACE to start', 'SPACE = jump  |  \u2191 \u2193 = switch paths'],
         ['#ffe87a', '#88ffaa', '#aaccff']
       );
     }
@@ -1664,7 +2583,7 @@
       );
     }
     if (state === 'won') {
-      if (level < 6) {
+      if (level < 8) {
         const nextTheme = LEVELS[level + 1].theme;
         drawOverlay(
           ['\uD83C\uDF89  ' + LEVELS[level].theme + ' Complete!', '\uD83C\uDF4E Apples: ' + score, 'Press SPACE for ' + nextTheme + '!'],
@@ -1672,7 +2591,7 @@
         );
       } else {
         drawOverlay(
-          ['\uD83C\uDFC6  You Beat All 6 Levels!', '\uD83C\uDF4E Total Apples: ' + score, 'Amazing job! Press SPACE to play again'],
+          ['\uD83C\uDFC6  You Beat All 8 Levels!', '\uD83C\uDF4E Total Apples: ' + score, 'Amazing job! Press SPACE to play again'],
           ['#ffe87a', '#88ffaa', '#cccccc']
         );
       }
