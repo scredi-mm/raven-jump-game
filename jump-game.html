@@ -119,6 +119,8 @@
   let trees = [], nextTreeIn = 0;
   let collectFx = []; // sparkle effects when collecting apples
   let confetti = [];  // celebration confetti when finishing a level
+  let lavaFlows = []; // lava streams for level 4
+  let nextLavaIn = 0;
   let dust = [];
   let cloudX = [50, 250, 500, 680];
   let worldOffset = 0;   // total distance traveled
@@ -137,7 +139,7 @@
     horse.vy = 0; horse.onGround = true;
     horse.lane = 0; horse.gallopT = 0;
     horse.jumpPhase = 'none'; horse.jumpT = 0;
-    obstacles = []; trees = []; dust = []; apples = []; collectFx = []; confetti = [];
+    obstacles = []; trees = []; dust = []; apples = []; collectFx = []; confetti = []; lavaFlows = []; nextLavaIn = 0;
     const lv = LEVELS[level];
     score = 0; speed = lv.speed; frame = 0;
     nextObsIn = lv.obsInterval; nextTreeIn = 0; nextAppleIn = lv.appleInterval;
@@ -274,6 +276,36 @@
     const mid = [[0,220],[80,155],[170,195],[280,125],[370,175],[470,135],[560,185],[660,145],[760,170],[800,190],[800,H],[0,H]];
     ctx.fillStyle = lv.mountains[1];
     drawPoly(mid, -mOff*0.6); drawPoly(mid, W-mOff*0.6);
+
+    // Volcanic eruption glow on level 4
+    if (level === 4) {
+      // Lava streams down the two tallest peaks
+      const peaks = [[200,70],[400,50]];
+      peaks.forEach(([px,py]) => {
+        const sx = ((px - mOff*0.3) % W + W) % W;
+        // Glowing crater
+        const craterGlow = ctx.createRadialGradient(sx, py + 5, 3, sx, py + 5, 30);
+        craterGlow.addColorStop(0, 'rgba(255,150,0,0.6)');
+        craterGlow.addColorStop(1, 'rgba(255,50,0,0)');
+        ctx.fillStyle = craterGlow;
+        ctx.beginPath(); ctx.arc(sx, py + 5, 30, 0, Math.PI * 2); ctx.fill();
+        // Lava stream down the mountainside
+        const t = frame * 0.03;
+        ctx.strokeStyle = `rgba(255,${80 + Math.sin(t) * 40},0,0.5)`;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(sx, py + 10);
+        ctx.quadraticCurveTo(sx + 15, py + 50, sx + 8, py + 100);
+        ctx.quadraticCurveTo(sx + 20, py + 130, sx + 12, py + 160);
+        ctx.stroke();
+        // Second stream
+        ctx.beginPath();
+        ctx.moveTo(sx - 3, py + 12);
+        ctx.quadraticCurveTo(sx - 18, py + 60, sx - 10, py + 110);
+        ctx.quadraticCurveTo(sx - 22, py + 140, sx - 15, py + 170);
+        ctx.stroke();
+      });
+    }
   }
 
   function drawPoly(pts, ox) {
@@ -659,6 +691,81 @@
       ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
       ctx.restore();
     });
+  }
+
+  // ── Lava (Level 4 only) ────────────────────────────────────────────────────
+
+  function spawnLava() {
+    const lane = Math.random() < 0.5 ? 0 : 1;
+    lavaFlows.push({
+      x: W + 30,
+      lane: lane,
+      w: 50 + Math.random() * 40,   // width of the lava pool
+      h: 14,
+      glow: 0,
+    });
+  }
+
+  function drawLava() {
+    lavaFlows.forEach(lv => {
+      const groundY = lv.lane === 0 ? lowerAt(lv.x) : upperAt(lv.x);
+      const ly = groundY - lv.h;
+
+      // Glow underneath
+      const glowG = ctx.createRadialGradient(lv.x + lv.w/2, groundY, 5, lv.x + lv.w/2, groundY, lv.w * 0.7);
+      glowG.addColorStop(0, 'rgba(255,80,0,0.4)');
+      glowG.addColorStop(1, 'rgba(255,80,0,0)');
+      ctx.fillStyle = glowG;
+      ctx.fillRect(lv.x - lv.w*0.2, ly - lv.w*0.3, lv.w * 1.4, lv.w * 0.8);
+
+      // Main lava pool shape
+      ctx.fillStyle = '#ff3300';
+      ctx.beginPath();
+      ctx.ellipse(lv.x + lv.w/2, groundY - 3, lv.w/2, lv.h/2 + 2, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Hot bright center
+      ctx.fillStyle = '#ff8800';
+      ctx.beginPath();
+      ctx.ellipse(lv.x + lv.w/2, groundY - 4, lv.w/3, lv.h/3, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // White-hot core
+      ctx.fillStyle = '#ffdd44';
+      ctx.beginPath();
+      ctx.ellipse(lv.x + lv.w/2, groundY - 5, lv.w/5, lv.h/4, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Bubbling — little circles popping
+      lv.glow += 0.08;
+      for (let i = 0; i < 3; i++) {
+        const bx = lv.x + lv.w * 0.2 + Math.sin(lv.glow + i * 2.1) * lv.w * 0.3;
+        const by = groundY - 6 + Math.sin(lv.glow * 1.5 + i) * 3;
+        const br = 2 + Math.sin(lv.glow + i) * 1.5;
+        ctx.fillStyle = 'rgba(255,200,50,0.7)';
+        ctx.beginPath(); ctx.arc(bx, by, Math.max(0.5, br), 0, Math.PI * 2); ctx.fill();
+      }
+
+      // Smoke wisps rising
+      for (let i = 0; i < 2; i++) {
+        const sx = lv.x + lv.w * 0.3 + i * lv.w * 0.4;
+        const sy = ly - 5 - Math.sin(lv.glow + i * 1.5) * 10;
+        const sa = 0.15 + Math.sin(lv.glow + i) * 0.1;
+        ctx.fillStyle = `rgba(80,30,0,${Math.max(0, sa)})`;
+        ctx.beginPath(); ctx.arc(sx, sy, 5 + Math.sin(lv.glow) * 2, 0, Math.PI * 2); ctx.fill();
+      }
+    });
+  }
+
+  function checkLavaCollision() {
+    for (const lv of lavaFlows) {
+      if (lv.lane !== horse.lane) continue;
+      const hx = hsx - 20, hw = 60;
+      if (hx < lv.x + lv.w && hx + hw > lv.x && horse.onGround) {
+        return true; // hit lava while on ground!
+      }
+    }
+    return false;
   }
 
   // ── Obstacles ──────────────────────────────────────────────────────────────
@@ -1241,6 +1348,17 @@
       if (frame % 3 === 0) emitDust();
       updateDust();
 
+      // Lava (level 4 only)
+      if (level === 4) {
+        nextLavaIn--;
+        if (nextLavaIn <= 0) {
+          spawnLava();
+          nextLavaIn = 70 + Math.random() * 80;
+        }
+        lavaFlows.forEach(lv => lv.x -= speed);
+        lavaFlows = lavaFlows.filter(lv => lv.x + lv.w > -20);
+      }
+
       // Collision
       for (const obs of obstacles) {
         if (checkCollision(obs)) {
@@ -1250,6 +1368,15 @@
             localStorage.setItem('ravenHighScore', String(highScore));
           }
           break;
+        }
+      }
+
+      // Lava collision (level 4)
+      if (level === 4 && state === 'playing' && checkLavaCollision()) {
+        state = 'dead'; stateTime = Date.now();
+        if (score > highScore) {
+          highScore = score;
+          localStorage.setItem('ravenHighScore', String(highScore));
         }
       }
 
@@ -1295,6 +1422,7 @@
     });
 
     drawApples();
+    if (level === 4) drawLava();
     drawRaven(hsx, horse.y, horse.gallopT, horse.jumpPhase, horse.jumpT, state === 'playing');
     drawCollectFx();
     drawDust();
