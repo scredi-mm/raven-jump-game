@@ -697,62 +697,116 @@
 
   function spawnLava() {
     const lane = Math.random() < 0.5 ? 0 : 1;
+    // Pick a random mountain peak Y to flow from (between 50-120 = mountain area)
+    const peakY = 40 + Math.random() * 60;
+    // Slight horizontal wobble for the stream path
+    const wobble = (Math.random() - 0.5) * 30;
     lavaFlows.push({
-      x: W + 30,
+      x: W + 60,
       lane: lane,
-      w: 50 + Math.random() * 40,   // width of the lava pool
-      h: 14,
-      glow: 0,
+      peakY: peakY,       // where the stream starts (mountain peak)
+      wobble: wobble,      // how much the stream curves sideways
+      w: 45 + Math.random() * 35,   // width of pool at the bottom
+      glow: Math.random() * 6,
     });
   }
 
   function drawLava() {
     lavaFlows.forEach(lv => {
-      const groundY = lv.lane === 0 ? lowerAt(lv.x) : upperAt(lv.x);
-      const ly = groundY - lv.h;
+      const groundY = lv.lane === 0 ? lowerAt(lv.x + lv.w/2) : upperAt(lv.x + lv.w/2);
+      const poolCX = lv.x + lv.w / 2;
+      const t = lv.glow;
 
-      // Glow underneath
-      const glowG = ctx.createRadialGradient(lv.x + lv.w/2, groundY, 5, lv.x + lv.w/2, groundY, lv.w * 0.7);
-      glowG.addColorStop(0, 'rgba(255,80,0,0.4)');
-      glowG.addColorStop(1, 'rgba(255,80,0,0)');
-      ctx.fillStyle = glowG;
-      ctx.fillRect(lv.x - lv.w*0.2, ly - lv.w*0.3, lv.w * 1.4, lv.w * 0.8);
+      // ── Flowing stream from mountain peak down to trail ──
+      const streamTop = lv.peakY;
+      const streamBot = groundY - 2;
+      const streamH = streamBot - streamTop;
 
-      // Main lava pool shape
-      ctx.fillStyle = '#ff3300';
-      ctx.beginPath();
-      ctx.ellipse(lv.x + lv.w/2, groundY - 3, lv.w/2, lv.h/2 + 2, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Hot bright center
-      ctx.fillStyle = '#ff8800';
-      ctx.beginPath();
-      ctx.ellipse(lv.x + lv.w/2, groundY - 4, lv.w/3, lv.h/3, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // White-hot core
-      ctx.fillStyle = '#ffdd44';
-      ctx.beginPath();
-      ctx.ellipse(lv.x + lv.w/2, groundY - 5, lv.w/5, lv.h/4, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Bubbling — little circles popping
-      lv.glow += 0.08;
-      for (let i = 0; i < 3; i++) {
-        const bx = lv.x + lv.w * 0.2 + Math.sin(lv.glow + i * 2.1) * lv.w * 0.3;
-        const by = groundY - 6 + Math.sin(lv.glow * 1.5 + i) * 3;
-        const br = 2 + Math.sin(lv.glow + i) * 1.5;
-        ctx.fillStyle = 'rgba(255,200,50,0.7)';
-        ctx.beginPath(); ctx.arc(bx, by, Math.max(0.5, br), 0, Math.PI * 2); ctx.fill();
+      // Draw the flowing lava stream (wider at bottom, narrow at top)
+      ctx.save();
+      for (let seg = 0; seg < 12; seg++) {
+        const frac = seg / 12;
+        const nextFrac = (seg + 1) / 12;
+        const y1 = streamTop + frac * streamH;
+        const y2 = streamTop + nextFrac * streamH;
+        // Width grows from narrow (2px) at peak to wide at pool
+        const w1 = 2 + frac * frac * 10;
+        const w2 = 2 + nextFrac * nextFrac * 10;
+        // Horizontal wobble using sine
+        const wx1 = Math.sin(frac * 3 + t * 0.5) * lv.wobble * frac;
+        const wx2 = Math.sin(nextFrac * 3 + t * 0.5) * lv.wobble * nextFrac;
+        // Color gets brighter toward bottom (hotter near pool)
+        const brightness = Math.floor(60 + frac * 140);
+        ctx.fillStyle = `rgb(255,${brightness},0)`;
+        ctx.beginPath();
+        ctx.moveTo(poolCX + wx1 - w1, y1);
+        ctx.lineTo(poolCX + wx1 + w1, y1);
+        ctx.lineTo(poolCX + wx2 + w2, y2);
+        ctx.lineTo(poolCX + wx2 - w2, y2);
+        ctx.closePath();
+        ctx.fill();
       }
 
-      // Smoke wisps rising
+      // Bright center line of the stream
+      ctx.strokeStyle = `rgba(255,220,50,0.5)`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(poolCX, streamTop + 10);
+      for (let i = 1; i <= 10; i++) {
+        const frac = i / 10;
+        const y = streamTop + frac * streamH;
+        const wx = Math.sin(frac * 3 + t * 0.5) * lv.wobble * frac;
+        ctx.lineTo(poolCX + wx, y);
+      }
+      ctx.stroke();
+      ctx.restore();
+
+      // ── Glow at the source (crater) ──
+      const craterGlow = ctx.createRadialGradient(poolCX, streamTop, 2, poolCX, streamTop, 20);
+      craterGlow.addColorStop(0, 'rgba(255,200,50,0.6)');
+      craterGlow.addColorStop(1, 'rgba(255,80,0,0)');
+      ctx.fillStyle = craterGlow;
+      ctx.beginPath(); ctx.arc(poolCX, streamTop, 20, 0, Math.PI * 2); ctx.fill();
+
+      // ── Lava pool at the bottom ──
+      // Glow around pool
+      const poolGlow = ctx.createRadialGradient(poolCX, groundY, 3, poolCX, groundY, lv.w * 0.6);
+      poolGlow.addColorStop(0, 'rgba(255,100,0,0.35)');
+      poolGlow.addColorStop(1, 'rgba(255,50,0,0)');
+      ctx.fillStyle = poolGlow;
+      ctx.fillRect(poolCX - lv.w * 0.6, groundY - lv.w * 0.4, lv.w * 1.2, lv.w * 0.6);
+
+      // Pool shape
+      ctx.fillStyle = '#dd2200';
+      ctx.beginPath();
+      ctx.ellipse(poolCX, groundY - 2, lv.w / 2, 8, 0, 0, Math.PI * 2);
+      ctx.fill();
+      // Bright center
+      ctx.fillStyle = '#ff6600';
+      ctx.beginPath();
+      ctx.ellipse(poolCX, groundY - 3, lv.w / 3, 5, 0, 0, Math.PI * 2);
+      ctx.fill();
+      // Hot core
+      ctx.fillStyle = '#ffcc22';
+      ctx.beginPath();
+      ctx.ellipse(poolCX, groundY - 4, lv.w / 5, 3, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Bubbles in the pool
+      lv.glow += 0.06;
+      for (let i = 0; i < 3; i++) {
+        const bx = poolCX + Math.sin(t + i * 2.1) * lv.w * 0.25;
+        const by = groundY - 4 + Math.sin(t * 1.5 + i) * 2;
+        ctx.fillStyle = 'rgba(255,200,50,0.6)';
+        ctx.beginPath(); ctx.arc(bx, by, 1.5 + Math.sin(t + i) * 1, 0, Math.PI * 2); ctx.fill();
+      }
+
+      // Smoke rising from the pool
       for (let i = 0; i < 2; i++) {
-        const sx = lv.x + lv.w * 0.3 + i * lv.w * 0.4;
-        const sy = ly - 5 - Math.sin(lv.glow + i * 1.5) * 10;
-        const sa = 0.15 + Math.sin(lv.glow + i) * 0.1;
-        ctx.fillStyle = `rgba(80,30,0,${Math.max(0, sa)})`;
-        ctx.beginPath(); ctx.arc(sx, sy, 5 + Math.sin(lv.glow) * 2, 0, Math.PI * 2); ctx.fill();
+        const sx = poolCX - 8 + i * 16;
+        const smokeY = groundY - 12 - Math.sin(t + i * 1.5) * 8;
+        ctx.fillStyle = `rgba(60,20,0,${0.12 + Math.sin(t + i) * 0.06})`;
+        ctx.beginPath(); ctx.arc(sx, smokeY, 4 + Math.sin(t) * 2, 0, Math.PI * 2); ctx.fill();
       }
     });
   }
@@ -761,8 +815,9 @@
     for (const lv of lavaFlows) {
       if (lv.lane !== horse.lane) continue;
       const hx = hsx - 20, hw = 60;
-      if (hx < lv.x + lv.w && hx + hw > lv.x && horse.onGround) {
-        return true; // hit lava while on ground!
+      const poolLeft = lv.x, poolRight = lv.x + lv.w;
+      if (hx < poolRight && hx + hw > poolLeft && horse.onGround) {
+        return true;
       }
     }
     return false;
