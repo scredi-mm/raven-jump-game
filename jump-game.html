@@ -119,6 +119,7 @@
   let apples = [], nextAppleIn = 30;
   let trees = [], nextTreeIn = 0;
   let collectFx = []; // sparkle effects when collecting apples
+  let confetti = [];  // celebration confetti when finishing a level
   let dust = [];
   let cloudX = [50, 250, 500, 680];
   let worldOffset = 0;   // total distance traveled
@@ -137,7 +138,7 @@
     horse.vy = 0; horse.onGround = true;
     horse.lane = 0; horse.gallopT = 0;
     horse.jumpPhase = 'none'; horse.jumpT = 0;
-    obstacles = []; trees = []; dust = []; apples = []; collectFx = [];
+    obstacles = []; trees = []; dust = []; apples = []; collectFx = []; confetti = [];
     const lv = LEVELS[level];
     score = 0; speed = lv.speed; frame = 0;
     nextObsIn = lv.obsInterval; nextTreeIn = 0; nextAppleIn = lv.appleInterval;
@@ -613,6 +614,51 @@
       ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill();
       ctx.fillStyle = `rgba(255,255,200,${p.life * 0.6})`;
       ctx.beginPath(); ctx.arc(p.x, p.y, p.size * 0.5, 0, Math.PI*2); ctx.fill();
+    });
+  }
+
+  // ── Confetti celebration ────────────────────────────────────────────────────
+
+  const CONFETTI_COLORS = ['#ff4444','#44dd44','#4488ff','#ffdd00','#ff88dd','#44ffee','#ffaa22'];
+
+  function spawnConfetti() {
+    confetti = [];
+    for (let i = 0; i < 80; i++) {
+      confetti.push({
+        x: Math.random() * W,
+        y: -20 - Math.random() * 200,
+        vx: (Math.random() - 0.5) * 4,
+        vy: 1.5 + Math.random() * 3,
+        rot: Math.random() * Math.PI * 2,
+        rotV: (Math.random() - 0.5) * 0.2,
+        w: 6 + Math.random() * 6,
+        h: 4 + Math.random() * 4,
+        color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
+        life: 1,
+      });
+    }
+  }
+
+  function updateConfetti() {
+    confetti.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.03; // gentle gravity
+      p.vx += (Math.random() - 0.5) * 0.3; // flutter
+      p.rot += p.rotV;
+      if (p.y > H + 20) p.life = 0;
+    });
+    confetti = confetti.filter(p => p.life > 0);
+  }
+
+  function drawConfetti() {
+    confetti.forEach(p => {
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+      ctx.restore();
     });
   }
 
@@ -1211,10 +1257,25 @@
       // Finish line check
       if (worldOffset >= LEVELS[level].finishAt) {
         state = 'won';
+        spawnConfetti();
+        // Victory jump!
+        horse.vy = -11; horse.onGround = false;
+        horse.jumpPhase = 'launch'; horse.jumpT = 0;
         if (score > highScore) {
           highScore = score;
           localStorage.setItem('ravenHighScore', String(highScore));
         }
+      }
+    }
+
+    // Victory jump physics (let horse land after celebration jump)
+    if (state === 'won' && !horse.onGround) {
+      horse.vy += GRAVITY;
+      horse.y += horse.vy;
+      if (horse.y >= horse.targetY) {
+        horse.y = horse.targetY;
+        horse.vy = 0; horse.onGround = true;
+        horse.jumpPhase = 'none';
       }
     }
 
@@ -1239,6 +1300,8 @@
     drawCollectFx();
     drawDust();
     drawFinishLine();
+    updateConfetti();
+    drawConfetti();
     drawHUD();
     if (state === 'playing') drawProgressBar();
 
