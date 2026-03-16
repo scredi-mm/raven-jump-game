@@ -215,6 +215,7 @@
     jumpPhase: 'none', jumpT: 0,
     rearing: false, rearT: 0,
     laneHopping: false, laneHopT: 0, laneHopFrom: LOWER_Y,
+    eating: false, eatT: 0,
   };
 
   function reset() {
@@ -224,6 +225,7 @@
     horse.jumpPhase = 'none'; horse.jumpT = 0;
     horse.rearing = false; horse.rearT = 0;
     horse.laneHopping = false; horse.laneHopT = 0; horse.laneHopFrom = LOWER_Y;
+    horse.eating = false; horse.eatT = 0;
     neighAudio.pause(); neighAudio.currentTime = 0;
     gallopAudio.pause(); gallopPlaying = false;
     obstacles = []; trees = []; dust = []; apples = []; collectFx = []; confetti = []; lavaFlows = []; nextLavaIn = 0; rollingBoulders = []; nextBoulderIn = 0; hazardCars = []; nextCarIn = 0; snowSink = 0; snowSinkV = 0; wasInAir = false; snowBursts = [];
@@ -1251,6 +1253,7 @@
       if (hit) {
         // Collected!
         score++;
+        horse.eating = true; horse.eatT = 0;
         playCollectSound();
         // Spawn sparkle effect
         for (let i = 0; i < 8; i++) {
@@ -2535,6 +2538,22 @@
       ctx.translate(pivotGX, pivotGY);
       ctx.rotate(grazeAngle * Math.PI / 180);
       ctx.translate(-pivotGX, -pivotGY);
+    }
+
+    // Eating head-dip when collecting an apple
+    if (horse.eating) {
+      horse.eatT += 1/60;
+      if (horse.eatT > 0.35) {
+        horse.eating = false; horse.eatT = 0;
+      } else {
+        // Quick dip down and back up: sin curve over 0.35s
+        const eatAngle = Math.sin((horse.eatT / 0.35) * Math.PI) * 15;
+        const pivotEX = dx + dw * 0.75;
+        const pivotEY = dy;
+        ctx.translate(pivotEX, pivotEY);
+        ctx.rotate(eatAngle * Math.PI / 180);
+        ctx.translate(-pivotEX, -pivotEY);
+      }
     }
 
     if (SPRITE.flipX) {
