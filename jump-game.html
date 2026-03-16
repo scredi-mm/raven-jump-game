@@ -2886,6 +2886,10 @@
           horse.laneHopT = 1;
           horse.laneHopping = false;
           horse.y = horse.targetY;
+          horse.onGround = true;
+          horse.vy = 0;
+          horse.jumpPhase = 'none';
+          horse.jumpT = 0;
         } else {
           const t = horse.laneHopT;
           // Linear lerp for horizontal progress + parabolic arc for the hop
