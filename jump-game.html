@@ -2111,10 +2111,11 @@
       fl = p.front; fr = [p.front[0]-10, p.front[1]+5, p.front[2]];
       hl = p.hind;  hr = [p.hind[0]-8, p.hind[1]+5, p.hind[2]];
     } else if (moving) {
-      fl = getGallopLeg(GALLOP_FRONT, gT);
-      fr = getGallopLeg(GALLOP_FRONT, (gT+0.12)%1);
-      hl = getGallopLeg(GALLOP_HIND, gT);
-      hr = getGallopLeg(GALLOP_HIND, (gT+0.12)%1);
+      const rT = (1 - gT + 1) % 1; // reverse gallop cycle so legs push forward
+      fl = getGallopLeg(GALLOP_FRONT, rT);
+      fr = getGallopLeg(GALLOP_FRONT, (rT+0.12)%1);
+      hl = getGallopLeg(GALLOP_HIND, rT);
+      hr = getGallopLeg(GALLOP_HIND, (rT+0.12)%1);
     } else {
       fl = [10,0,5]; fr = [5,2,5]; hl = [-5,5,5]; hr = [-8,8,5];
     }
