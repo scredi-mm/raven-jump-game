@@ -117,7 +117,13 @@
     update(dt) {
       const anim = SPRITE.anims[this.current];
       this.timer += dt;
-      const fd = 1 / anim.fps;
+      // Gallop/trot speed increases with level: L1=10fps, L2=12, L3=13, ... L8=18
+      let fps = anim.fps;
+      if (this.current === 'gallop' || this.current === 'trot') {
+        const levelBoost = (level - 1) * 1.1;
+        fps = anim.fps + levelBoost;
+      }
+      const fd = 1 / fps;
       while (this.timer >= fd) { this.timer -= fd; this.frameIndex = (this.frameIndex + 1) % anim.frames; }
     },
     play(name) {
