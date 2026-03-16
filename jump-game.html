@@ -2398,30 +2398,32 @@
     ctx.save();
 
     if (isRearing) {
-      // Rotate sprite backward to simulate rearing up on hind legs
-      // The horse faces RIGHT, so we rotate counter-clockwise (negative angle)
-      // pivoting from the hind hooves (back-right of the sprite on screen)
+      // Rear up on hind legs: horse faces RIGHT, so hind hooves are on the LEFT.
+      // Rotate clockwise (positive angle) around the hind hooves so the
+      // front of the horse (head, front legs) lifts UP off the ground.
       const rt = horse.rearT;
       let rearAngle;
       if (rt < 0.35) {
-        // Rising up: 0 → -55 degrees with easeOut
+        // Rising up: 0 → 50 degrees with easeOut
         const t = rt / 0.35;
-        const ease = 1 - (1 - t) * (1 - t); // easeOutQuad
-        rearAngle = -55 * ease;
+        const ease = 1 - (1 - t) * (1 - t);
+        rearAngle = 50 * ease;
       } else if (rt < 1.8) {
-        // Holding at peak: dramatic rear with lively sway
-        rearAngle = -55 + Math.sin((rt - 0.35) * 4) * 3;
+        // Holding at peak: slight sway while neighing
+        rearAngle = 50 + Math.sin((rt - 0.35) * 4) * 2.5;
       } else {
-        // Settling back down: -55 → 0 with easeIn
+        // Settling back down: 50 → 0 with easeIn
         const t = Math.min(1, (rt - 1.8) / 0.4);
-        const ease = t * t; // easeInQuad
-        rearAngle = -55 * (1 - ease);
+        const ease = t * t;
+        rearAngle = 50 * (1 - ease);
       }
-      // Pivot point: hind hooves — right side of sprite, at ground level
-      const pivotX = x + dw * 0.2;
-      const pivotY = dy;
+      // Pivot at hind hooves: LEFT side of sprite, at ground level
+      // dx is left edge of sprite; hind hooves sit ~25% from the left
+      const pivotX = dx + dw * 0.28;
+      const pivotY = dy;  // ground line where hooves sit
       ctx.translate(pivotX, pivotY);
-      ctx.rotate(rearAngle * Math.PI / 180);
+      // Negative = counter-clockwise = right side (head) goes UP in canvas coords
+      ctx.rotate(-rearAngle * Math.PI / 180);
       ctx.translate(-pivotX, -pivotY);
     }
 
