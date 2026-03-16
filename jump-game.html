@@ -204,6 +204,7 @@
     vy: 0, onGround: true, lane: 0,
     gallopT: 0,
     jumpPhase: 'none', jumpT: 0,
+    rearing: false, rearT: 0,
   };
 
   function reset() {
@@ -211,6 +212,7 @@
     horse.vy = 0; horse.onGround = true;
     horse.lane = 0; horse.gallopT = 0;
     horse.jumpPhase = 'none'; horse.jumpT = 0;
+    horse.rearing = false; horse.rearT = 0;
     neighAudio.pause(); neighAudio.currentTime = 0;
     gallopAudio.pause(); gallopPlaying = false;
     obstacles = []; trees = []; dust = []; apples = []; collectFx = []; confetti = []; lavaFlows = []; nextLavaIn = 0; rollingBoulders = []; nextBoulderIn = 0; hazardCars = []; nextCarIn = 0; snowSink = 0; snowSinkV = 0; wasInAir = false; snowBursts = [];
@@ -2323,6 +2325,7 @@
 
   function selectHorseAnim(jp, moving) {
     if (state === 'dead') return 'idle';  // no death anim, just freeze
+    if (horse.rearing) return 'rear';     // victory rear on hind legs
     if (jp !== 'none') return 'jump';
     if (moving) {
       // Use trot for slower levels (1-2), gallop for faster
@@ -2350,11 +2353,27 @@
     if (!horseSpriteReady) return; // wait for image to load
 
     const animName = selectHorseAnim(jp, moving);
-    const anim = SPRITE.anims[animName];
+    const isRearing = animName === 'rear';
+    // For rearing, use jump strip frames
+    const anim = isRearing ? SPRITE.anims['jump'] : SPRITE.anims[animName];
 
     // Determine frame index
     let frameIdx;
-    if (animName === 'jump') {
+    if (isRearing) {
+      // Rear animation: rise up (0→1.8s), hold at peak, settle back (1.8→2.2s)
+      const rt = horse.rearT;
+      if (rt < 0.3) {
+        // Rising: frames 0→3 (gather to launch)
+        frameIdx = Math.min(3, Math.floor((rt / 0.3) * 4));
+      } else if (rt < 1.8) {
+        // Holding at peak: alternate frames 3-4 for a lively rear
+        frameIdx = 3 + Math.floor(((rt - 0.3) * 3) % 2);
+      } else {
+        // Settling back down: frames 3→0
+        const settleT = (rt - 1.8) / 0.4;
+        frameIdx = Math.max(0, 3 - Math.floor(settleT * 4));
+      }
+    } else if (animName === 'jump') {
       frameIdx = getJumpFrame(jp, jt, anim.frames);
     } else if (animName === 'gallop' || animName === 'trot') {
       // Sync directly to gallopT for perfect audio sync
@@ -2368,7 +2387,7 @@
 
     // Bob (reduced since sprite has its own visual bob)
     let bob = 0;
-    if (jp === 'none' && moving) {
+    if (jp === 'none' && moving && !isRearing) {
       bob = Math.sin(gT * Math.PI * 4) * 1.5;
     }
     const sinkY = horse.onGround ? snowSink : 0;
@@ -2388,6 +2407,30 @@
     const ddy = dy - dh + 8 * SPRITE.scale; // slight offset since frame has padding at bottom
 
     ctx.save();
+
+    if (isRearing) {
+      // Rotate sprite backward (clockwise from hind hooves) to simulate rearing
+      const rt = horse.rearT;
+      let rearAngle;
+      if (rt < 0.3) {
+        // Rising up: 0 → -35 degrees (lean back)
+        rearAngle = -(rt / 0.3) * 35;
+      } else if (rt < 1.8) {
+        // Holding: slight sway between -33 and -37 degrees
+        rearAngle = -35 + Math.sin((rt - 0.3) * 5) * 2;
+      } else {
+        // Settling: -35 → 0 degrees
+        const settleT = (rt - 1.8) / 0.4;
+        rearAngle = -35 * (1 - settleT);
+      }
+      // Pivot from the hind hooves (bottom-right area of sprite)
+      const pivotX = x + dw * 0.15;  // hind hooves position
+      const pivotY = dy;              // ground level
+      ctx.translate(pivotX, pivotY);
+      ctx.rotate(rearAngle * Math.PI / 180);
+      ctx.translate(-pivotX, -pivotY);
+    }
+
     if (SPRITE.flipX) {
       ctx.translate(x, 0);
       ctx.scale(-1, 1);
@@ -2678,9 +2721,9 @@
         // Clear all hazards
         obstacles = []; lavaFlows = []; rollingBoulders = []; hazardCars = []; apples = [];
         spawnConfetti();
-        // Victory jump + neigh!
-        horse.vy = -11; horse.onGround = false;
-        horse.jumpPhase = 'launch'; horse.jumpT = 0;
+        // Victory rear + neigh!
+        horse.rearing = true; horse.rearT = 0;
+        horse.jumpPhase = 'none'; horse.jumpT = 0;
         gallopAudio.pause(); gallopPlaying = false;
         neighAudio.currentTime = 0; neighAudio.play().catch(()=>{});
         if (score > highScore) {
@@ -2903,14 +2946,13 @@
 
     }
 
-    // Victory jump physics (let horse land after celebration jump)
-    if (state === 'won' && !horse.onGround) {
-      horse.vy += GRAVITY;
-      horse.y += horse.vy;
-      if (horse.y >= horse.targetY) {
-        horse.y = horse.targetY;
-        horse.vy = 0; horse.onGround = true;
-        horse.jumpPhase = 'none';
+    // Victory rear animation — horse stands on hind legs, then settles
+    if (state === 'won' && horse.rearing) {
+      horse.rearT += 1 / 60;  // ~60fps timer
+      // Rear lasts ~1.8s (matches neigh), then settle back down over 0.4s
+      if (horse.rearT > 2.2) {
+        horse.rearing = false;
+        horse.rearT = 0;
       }
     }
 
