@@ -1577,6 +1577,8 @@
       // Finish line check
       if (worldOffset >= LEVELS[level].finishAt) {
         state = 'won';
+        // Clear all hazards so you don't die after crossing
+        obstacles = []; lavaFlows = []; rollingBoulders = [];
         spawnConfetti();
         // Victory jump + neigh!
         horse.vy = -11; horse.onGround = false;
@@ -1602,12 +1604,12 @@
     }
 
     // ── Audio: gallop loop ─────────────────────────────────────────────────
-    if (state === 'playing' && !gallopPlaying) {
-      gallopAudio.currentTime = 0;
+    const shouldGallop = state === 'playing' && horse.onGround;
+    if (shouldGallop && !gallopPlaying) {
       gallopAudio.play().catch(()=>{});
       gallopPlaying = true;
     }
-    if (state !== 'playing' && gallopPlaying) {
+    if (!shouldGallop && gallopPlaying) {
       gallopAudio.pause();
       gallopPlaying = false;
     }
