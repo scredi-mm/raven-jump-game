@@ -722,57 +722,28 @@
       const streamBot = groundY - 2;
       const streamH = streamBot - streamTop;
 
-      // Helper: build a curvy path for the stream at a given width
-      function streamPath(widthMul) {
-        const pts = [];
-        for (let i = 0; i <= 16; i++) {
-          const frac = i / 16;
-          const y = streamTop + frac * streamH;
-          const wx = Math.sin(frac * 3 + t * 0.5) * lv.wobble * frac;
-          const w = (1.5 + frac * frac * 9) * widthMul;
-          pts.push({ x: poolCX + wx, y, w });
-        }
-        return pts;
+      // Draw stream as stacked ellipses — same technique as the pool
+      // Each slice is a little ellipse: red outside, orange middle, yellow core
+      for (let i = 0; i <= 20; i++) {
+        const frac = i / 20;
+        const y = streamTop + frac * streamH;
+        const wx = Math.sin(frac * 3 + t * 0.5) * lv.wobble * frac;
+        const cx = poolCX + wx;
+        const r = 2 + frac * frac * 11; // radius grows toward bottom
+
+        // Glow
+        ctx.fillStyle = 'rgba(255,60,0,0.15)';
+        ctx.beginPath(); ctx.ellipse(cx, y, r * 2, r * 0.8, 0, 0, Math.PI * 2); ctx.fill();
+        // Red outer
+        ctx.fillStyle = '#dd2200';
+        ctx.beginPath(); ctx.ellipse(cx, y, r, r * 0.45, 0, 0, Math.PI * 2); ctx.fill();
+        // Orange middle
+        ctx.fillStyle = '#ff6600';
+        ctx.beginPath(); ctx.ellipse(cx, y, r * 0.65, r * 0.3, 0, 0, Math.PI * 2); ctx.fill();
+        // Yellow-hot core
+        ctx.fillStyle = '#ffcc22';
+        ctx.beginPath(); ctx.ellipse(cx, y, r * 0.3, r * 0.15, 0, 0, Math.PI * 2); ctx.fill();
       }
-
-      // Outer glow (wide, soft)
-      const glowPts = streamPath(2.5);
-      ctx.lineWidth = 1;
-      for (let i = 0; i < glowPts.length - 1; i++) {
-        const p = glowPts[i], n = glowPts[i+1];
-        const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.w);
-        g.addColorStop(0, 'rgba(255,80,0,0.25)');
-        g.addColorStop(1, 'rgba(255,30,0,0)');
-        ctx.fillStyle = g;
-        ctx.fillRect(p.x - p.w, p.y, p.w * 2, n.y - p.y + 1);
-      }
-
-      // Dark red outer layer (like pool edge)
-      const outerPts = streamPath(1.0);
-      ctx.fillStyle = '#dd2200';
-      ctx.beginPath();
-      ctx.moveTo(outerPts[0].x - outerPts[0].w, outerPts[0].y);
-      for (const p of outerPts) ctx.lineTo(p.x - p.w, p.y);
-      for (let i = outerPts.length - 1; i >= 0; i--) ctx.lineTo(outerPts[i].x + outerPts[i].w, outerPts[i].y);
-      ctx.closePath(); ctx.fill();
-
-      // Bright orange middle layer
-      const midPts = streamPath(0.65);
-      ctx.fillStyle = '#ff6600';
-      ctx.beginPath();
-      ctx.moveTo(midPts[0].x - midPts[0].w, midPts[0].y);
-      for (const p of midPts) ctx.lineTo(p.x - p.w, p.y);
-      for (let i = midPts.length - 1; i >= 0; i--) ctx.lineTo(midPts[i].x + midPts[i].w, midPts[i].y);
-      ctx.closePath(); ctx.fill();
-
-      // Yellow-hot core
-      const corePts = streamPath(0.3);
-      ctx.fillStyle = '#ffcc22';
-      ctx.beginPath();
-      ctx.moveTo(corePts[0].x - corePts[0].w, corePts[0].y);
-      for (const p of corePts) ctx.lineTo(p.x - p.w, p.y);
-      for (let i = corePts.length - 1; i >= 0; i--) ctx.lineTo(corePts[i].x + corePts[i].w, corePts[i].y);
-      ctx.closePath(); ctx.fill();
 
       // ── Glow at the source (crater) ──
       const craterGlow = ctx.createRadialGradient(poolCX, streamTop, 2, poolCX, streamTop, 20);
