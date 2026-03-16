@@ -214,6 +214,7 @@
     gallopT: 0,
     jumpPhase: 'none', jumpT: 0,
     rearing: false, rearT: 0,
+    laneHopping: false, laneHopT: 0, laneHopFrom: LOWER_Y,
   };
 
   function reset() {
@@ -222,6 +223,7 @@
     horse.lane = 0; horse.gallopT = 0;
     horse.jumpPhase = 'none'; horse.jumpT = 0;
     horse.rearing = false; horse.rearT = 0;
+    horse.laneHopping = false; horse.laneHopT = 0; horse.laneHopFrom = LOWER_Y;
     neighAudio.pause(); neighAudio.currentTime = 0;
     gallopAudio.pause(); gallopPlaying = false;
     obstacles = []; trees = []; dust = []; apples = []; collectFx = []; confetti = []; lavaFlows = []; nextLavaIn = 0; rollingBoulders = []; nextBoulderIn = 0; hazardCars = []; nextCarIn = 0; snowSink = 0; snowSinkV = 0; wasInAir = false; snowBursts = [];
@@ -266,11 +268,17 @@
       return;
     }
     if (state !== 'playing') return;
-    if (e.code === 'ArrowUp' && horse.lane === 0) {
+    if (e.code === 'ArrowUp' && horse.lane === 0 && !horse.laneHopping) {
       horse.lane = 1; horse.targetY = UPPER_Y;
+      horse.laneHopping = true;
+      horse.laneHopT = 0;
+      horse.laneHopFrom = horse.y;
     }
-    if (e.code === 'ArrowDown' && horse.lane === 1) {
+    if (e.code === 'ArrowDown' && horse.lane === 1 && !horse.laneHopping) {
       horse.lane = 0; horse.targetY = LOWER_Y;
+      horse.laneHopping = true;
+      horse.laneHopT = 0;
+      horse.laneHopFrom = horse.y;
     }
     if (e.code === 'ArrowUp' || e.code === 'ArrowDown') e.preventDefault();
   });
@@ -2807,9 +2815,20 @@
 
       horse.gallopT = (horse.gallopT + 0.018 * speed) % 1;
 
-      // Lane transition
-      if (horse.onGround && Math.abs(horse.y - horse.targetY) > 1) {
-        horse.y += (horse.targetY - horse.y) * 0.15;
+      // Lane transition — hop arc between paths
+      if (horse.laneHopping) {
+        horse.laneHopT += 0.04;  // ~0.4s hop duration at 60fps
+        if (horse.laneHopT >= 1) {
+          horse.laneHopT = 1;
+          horse.laneHopping = false;
+          horse.y = horse.targetY;
+        } else {
+          const t = horse.laneHopT;
+          // Linear lerp for horizontal progress + parabolic arc for the hop
+          const straight = horse.laneHopFrom + (horse.targetY - horse.laneHopFrom) * t;
+          const arc = -Math.sin(t * Math.PI) * 40;  // 40px hop peak
+          horse.y = straight + arc;
+        }
       }
 
       // Gravity — hold space to jump higher, but cap at apple height
