@@ -161,6 +161,8 @@
     horse.vy = 0; horse.onGround = true;
     horse.lane = 0; horse.gallopT = 0;
     horse.jumpPhase = 'none'; horse.jumpT = 0;
+    neighAudio.pause(); neighAudio.currentTime = 0;
+    gallopAudio.pause(); gallopPlaying = false;
     obstacles = []; trees = []; dust = []; apples = []; collectFx = []; confetti = []; lavaFlows = []; nextLavaIn = 0; rollingBoulders = []; nextBoulderIn = 0;
     const lv = LEVELS[level];
     score = 0; speed = lv.speed; frame = 0;
@@ -1439,6 +1441,24 @@
       speed = LEVELS[level].speed + Math.floor(score / 15) * 0.5;
       worldOffset += speed;
 
+      // Finish line check — immediately stop when you reach it
+      if (worldOffset >= LEVELS[level].finishAt) {
+        worldOffset = LEVELS[level].finishAt; // snap exactly to finish
+        state = 'won';
+        // Clear all hazards
+        obstacles = []; lavaFlows = []; rollingBoulders = []; apples = [];
+        spawnConfetti();
+        // Victory jump + neigh!
+        horse.vy = -11; horse.onGround = false;
+        horse.jumpPhase = 'launch'; horse.jumpT = 0;
+        gallopAudio.pause(); gallopPlaying = false;
+        neighAudio.currentTime = 0; neighAudio.play().catch(()=>{});
+        if (score > highScore) {
+          highScore = score;
+          localStorage.setItem('ravenHighScore', String(highScore));
+        }
+      }
+
       // Raven gallops FORWARD — her screen X actually increases!
       // Each gallop stride pushes her forward a bit
       const strideForward = Math.sin(horse.gallopT * Math.PI * 2);
@@ -1574,22 +1594,6 @@
         }
       }
 
-      // Finish line check
-      if (worldOffset >= LEVELS[level].finishAt) {
-        state = 'won';
-        // Clear all hazards so you don't die after crossing
-        obstacles = []; lavaFlows = []; rollingBoulders = [];
-        spawnConfetti();
-        // Victory jump + neigh!
-        horse.vy = -11; horse.onGround = false;
-        horse.jumpPhase = 'launch'; horse.jumpT = 0;
-        gallopAudio.pause(); gallopPlaying = false;
-        neighAudio.currentTime = 0; neighAudio.play().catch(()=>{});
-        if (score > highScore) {
-          highScore = score;
-          localStorage.setItem('ravenHighScore', String(highScore));
-        }
-      }
     }
 
     // Victory jump physics (let horse land after celebration jump)
