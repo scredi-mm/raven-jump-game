@@ -56,8 +56,8 @@
 
   const LOWER_Y = 320;
   const UPPER_Y = 205;
-  const GRAVITY  = 0.58;
-  const JUMP_V   = -13.5;
+  const GRAVITY  = 0.29;
+  const JUMP_V   = -6.75;
   const HORSE_MIN_SX = 120;  // leftmost screen position
   const HORSE_MAX_SX = 580;  // rightmost — camera kicks in before this
   const CAMERA_PULL_START = 480; // camera starts pulling horse back at this x
@@ -1048,7 +1048,7 @@
       appleGroupsOnLane = 1;
     }
 
-    const floatH = 40 + Math.random() * 15;  // all apples at same easy height — grab while running
+    const floatH = 28 + Math.random() * 10;  // apples at lower height to match halved jump
 
     // Spawn a cluster of 1-4 apples in a line
     const count = 1 + Math.floor(Math.random() * 3);
@@ -1058,56 +1058,157 @@
         lane: appleLane,
         floatH: floatH,
         bob: Math.random() * Math.PI * 2, // bobbing phase offset
-        size: 10 + Math.random() * 3,
+        size: 7 + Math.random() * 2.5,
+        shape: Math.floor(Math.random() * 5),  // 0-4: different apple shapes
+        hue: Math.random(),  // color variation
       });
     }
   }
 
-  function drawApple(ax, ay, size, bob) {
-    const by = Math.sin(bob) * 3; // gentle floating bob
+  function drawApple(ax, ay, size, bob, shape, hue) {
+    shape = shape || 0;
+    hue = hue || 0;
+    const by = Math.sin(bob) * 2; // gentle floating bob
     const cy = ay + by;
+    const s = size;
 
     // Shadow on ground
-    ctx.fillStyle = 'rgba(0,0,0,0.15)';
-    ctx.beginPath(); ctx.ellipse(ax, ay + size + 4 - by, size * 0.6, 3, 0, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = 'rgba(0,0,0,0.12)';
+    ctx.beginPath(); ctx.ellipse(ax, ay + s + 3 - by, s * 0.5, 2, 0, 0, Math.PI*2); ctx.fill();
 
-    // Apple body — red with gradient feel
-    ctx.fillStyle = '#cc1122';
-    ctx.beginPath(); ctx.arc(ax, cy, size, 0, Math.PI*2); ctx.fill();
+    // Pick color variation based on hue
+    let baseR, darkR, lightR;
+    if (hue < 0.25) {
+      // Deep red
+      baseR = '#b81220'; darkR = '#8a0c16'; lightR = '#d4263a';
+    } else if (hue < 0.5) {
+      // Bright red
+      baseR = '#cc1a1a'; darkR = '#991212'; lightR = '#e63838';
+    } else if (hue < 0.75) {
+      // Red-green (like a mixed apple)
+      baseR = '#c42828'; darkR = '#7a8822'; lightR = '#dd4040';
+    } else {
+      // Dark crimson
+      baseR = '#a01525'; darkR = '#6e0e18'; lightR = '#c82a3a';
+    }
 
-    // Darker red side
-    ctx.fillStyle = '#991018';
-    ctx.beginPath(); ctx.arc(ax + size*0.25, cy + size*0.15, size*0.75, 0, Math.PI*2); ctx.fill();
+    ctx.save();
+    ctx.translate(ax, cy);
 
-    // Main red body again on top
-    ctx.fillStyle = '#dd2233';
-    ctx.beginPath(); ctx.arc(ax - size*0.1, cy - size*0.1, size*0.7, 0, Math.PI*2); ctx.fill();
+    // Draw apple silhouette — each shape is different
+    ctx.beginPath();
+    if (shape === 0) {
+      // Classic apple — slightly wider at bottom, indent at top
+      ctx.moveTo(0, -s * 0.9);
+      ctx.bezierCurveTo(-s*0.3, -s*1.05, -s*0.95, -s*0.6, -s*0.85, -s*0.1);
+      ctx.bezierCurveTo(-s*0.8, s*0.4, -s*0.5, s*0.85, 0, s*0.9);
+      ctx.bezierCurveTo(s*0.5, s*0.85, s*0.8, s*0.4, s*0.85, -s*0.1);
+      ctx.bezierCurveTo(s*0.95, -s*0.6, s*0.3, -s*1.05, 0, -s*0.9);
+    } else if (shape === 1) {
+      // Tall/elongated apple
+      ctx.moveTo(0, -s * 0.95);
+      ctx.bezierCurveTo(-s*0.25, -s*1.1, -s*0.8, -s*0.7, -s*0.72, -s*0.15);
+      ctx.bezierCurveTo(-s*0.68, s*0.45, -s*0.4, s*0.95, 0, s);
+      ctx.bezierCurveTo(s*0.4, s*0.95, s*0.68, s*0.45, s*0.72, -s*0.15);
+      ctx.bezierCurveTo(s*0.8, -s*0.7, s*0.25, -s*1.1, 0, -s*0.95);
+    } else if (shape === 2) {
+      // Wide/squat apple
+      ctx.moveTo(0, -s * 0.75);
+      ctx.bezierCurveTo(-s*0.35, -s*0.95, -s, -s*0.5, -s*0.95, 0);
+      ctx.bezierCurveTo(-s*0.9, s*0.5, -s*0.5, s*0.78, 0, s*0.8);
+      ctx.bezierCurveTo(s*0.5, s*0.78, s*0.9, s*0.5, s*0.95, 0);
+      ctx.bezierCurveTo(s, -s*0.5, s*0.35, -s*0.95, 0, -s*0.75);
+    } else if (shape === 3) {
+      // Lopsided apple — slightly tilted
+      ctx.moveTo(s*0.05, -s * 0.88);
+      ctx.bezierCurveTo(-s*0.25, -s*1.0, -s*0.92, -s*0.55, -s*0.8, -s*0.05);
+      ctx.bezierCurveTo(-s*0.72, s*0.5, -s*0.38, s*0.88, s*0.05, s*0.9);
+      ctx.bezierCurveTo(s*0.5, s*0.88, s*0.85, s*0.45, s*0.88, -s*0.05);
+      ctx.bezierCurveTo(s*0.9, -s*0.55, s*0.35, -s*1.05, s*0.05, -s*0.88);
+    } else {
+      // Heart-shaped apple — deeper indent at top
+      ctx.moveTo(0, -s * 0.7);
+      ctx.bezierCurveTo(-s*0.45, -s*1.15, -s*1.0, -s*0.55, -s*0.82, 0);
+      ctx.bezierCurveTo(-s*0.65, s*0.55, -s*0.35, s*0.88, 0, s*0.92);
+      ctx.bezierCurveTo(s*0.35, s*0.88, s*0.65, s*0.55, s*0.82, 0);
+      ctx.bezierCurveTo(s*1.0, -s*0.55, s*0.45, -s*1.15, 0, -s*0.7);
+    }
+    ctx.closePath();
 
-    // Highlight shine
-    ctx.fillStyle = 'rgba(255,255,255,0.45)';
-    ctx.beginPath(); ctx.ellipse(ax - size*0.25, cy - size*0.3, size*0.28, size*0.22, -0.4, 0, Math.PI*2); ctx.fill();
+    // Fill base color
+    ctx.fillStyle = baseR;
+    ctx.fill();
 
-    // Stem
-    ctx.strokeStyle = '#4a2a08';
-    ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(ax, cy - size);
-    ctx.quadraticCurveTo(ax + 3, cy - size - 5, ax + 1, cy - size - 8);
+    // Dark side shading (right side)
+    ctx.save();
+    ctx.clip();
+    ctx.fillStyle = darkR;
+    ctx.beginPath();
+    ctx.ellipse(s*0.35, s*0.1, s*0.7, s*0.9, 0.15, 0, Math.PI*2);
+    ctx.fill();
+
+    // Light side highlight (left side)
+    ctx.fillStyle = lightR;
+    ctx.beginPath();
+    ctx.ellipse(-s*0.25, -s*0.15, s*0.5, s*0.65, -0.1, 0, Math.PI*2);
+    ctx.fill();
+
+    // Specular highlight
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    ctx.beginPath();
+    ctx.ellipse(-s*0.22, -s*0.35, s*0.2, s*0.15, -0.5, 0, Math.PI*2);
+    ctx.fill();
+
+    // Subtle bottom shadow inside apple
+    ctx.fillStyle = 'rgba(0,0,0,0.12)';
+    ctx.beginPath();
+    ctx.ellipse(0, s*0.6, s*0.6, s*0.25, 0, 0, Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+
+    // Stem — slightly curved, varies per shape
+    const stemLen = s * (0.45 + (shape % 3) * 0.08);
+    const stemCurve = (shape % 2 === 0) ? 2.5 : -2;
+    ctx.strokeStyle = '#5a3510';
+    ctx.lineWidth = 1.5;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(0, -s * 0.8);
+    ctx.quadraticCurveTo(stemCurve, -s * 0.8 - stemLen * 0.6, stemCurve * 0.3, -s * 0.8 - stemLen);
     ctx.stroke();
 
-    // Tiny leaf
-    ctx.fillStyle = '#3a8828';
+    // Leaf — size and angle varies
+    const leafSide = (shape % 2 === 0) ? 1 : -1;
+    const leafSize = s * (0.5 + (shape % 3) * 0.1);
+    ctx.fillStyle = hue > 0.5 ? '#4a9930' : '#3a7a22';
     ctx.beginPath();
-    ctx.moveTo(ax + 1, cy - size - 5);
-    ctx.quadraticCurveTo(ax + 8, cy - size - 10, ax + 6, cy - size - 3);
-    ctx.quadraticCurveTo(ax + 3, cy - size - 5, ax + 1, cy - size - 5);
+    ctx.moveTo(stemCurve * 0.5, -s * 0.8 - stemLen * 0.4);
+    ctx.quadraticCurveTo(
+      leafSide * leafSize * 1.2, -s * 0.8 - stemLen * 0.4 - leafSize * 0.6,
+      leafSide * leafSize * 0.7, -s * 0.8 - stemLen * 0.15
+    );
+    ctx.quadraticCurveTo(
+      leafSide * leafSize * 0.3, -s * 0.8 - stemLen * 0.3,
+      stemCurve * 0.5, -s * 0.8 - stemLen * 0.4
+    );
     ctx.fill();
+
+    // Leaf vein
+    ctx.strokeStyle = 'rgba(0,80,0,0.3)';
+    ctx.lineWidth = 0.5;
+    ctx.beginPath();
+    ctx.moveTo(stemCurve * 0.5, -s * 0.8 - stemLen * 0.4);
+    ctx.lineTo(leafSide * leafSize * 0.5, -s * 0.8 - stemLen * 0.3);
+    ctx.stroke();
+
+    ctx.restore();
   }
 
   function drawApples() {
     apples.forEach(a => {
       const groundY = a.lane === 0 ? lowerAt(a.x) : upperAt(a.x);
       const ay = groundY - a.floatH;
-      drawApple(a.x, ay, a.size, a.bob);
+      drawApple(a.x, ay, a.size, a.bob, a.shape, a.hue);
     });
   }
 
@@ -2616,7 +2717,7 @@
       }
 
       // Gravity — hold space to jump higher, but cap at apple height
-      const maxRise = 170; // max pixels above ground — right where apples are
+      const maxRise = 85; // max pixels above ground — half height, same airtime
       if (!horse.onGround) {
         wasInAir = true;
         const risen = horse.targetY - horse.y; // how high above ground
