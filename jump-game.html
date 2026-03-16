@@ -3029,17 +3029,17 @@
       ctx.rect(0, 0, W, horse.targetY);  // only draw above the ground surface
       ctx.clip();
     }
-    // Draw a little grass patch on waiting screen where the horse grazes
+    // Draw a little grass patch on waiting screen right where the horse's mouth grazes
     if (state === 'waiting') {
-      const gx = hsx + 45;  // in front of horse's head
-      const gy = horse.y;   // ground level
+      const gx = hsx + 75;  // right at the horse's nose when head is down
+      const gy = horse.y - 2; // just at ground level
       ctx.save();
-      // Grass blades — a small tuft
+      // Grass blades — a small tuft growing up from the ground
       const greens = ['#2a7a22','#3a9930','#2e8828','#4aaa38','#358830'];
-      for (let i = 0; i < 12; i++) {
-        const bx = gx - 14 + i * 2.5 + Math.sin(i * 2.3) * 3;
-        const bh = 8 + Math.sin(i * 1.7) * 4;  // blade height varies
-        const sway = Math.sin(grazeTimer * 1.2 + i * 0.8) * 1.5;  // gentle sway
+      for (let i = 0; i < 14; i++) {
+        const bx = gx - 16 + i * 2.3 + Math.sin(i * 2.3) * 2;
+        const bh = 6 + Math.sin(i * 1.7) * 3;  // short blades
+        const sway = Math.sin(grazeTimer * 1.2 + i * 0.8) * 1.2;
         ctx.strokeStyle = greens[i % greens.length];
         ctx.lineWidth = 1.5;
         ctx.lineCap = 'round';
@@ -3048,10 +3048,10 @@
         ctx.quadraticCurveTo(bx + sway, gy - bh * 0.6, bx + sway * 1.5, gy - bh);
         ctx.stroke();
       }
-      // Small ground base
+      // Ground base
       ctx.fillStyle = '#3a7a28';
       ctx.beginPath();
-      ctx.ellipse(gx, gy, 18, 3, 0, 0, Math.PI * 2);
+      ctx.ellipse(gx, gy + 1, 20, 3, 0, 0, Math.PI * 2);
       ctx.fill();
       ctx.restore();
     }
