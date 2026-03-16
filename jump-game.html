@@ -275,6 +275,11 @@
     if (e.code === 'KeyB') {
       (document.exitFullscreen?.() || document.webkitExitFullscreen?.());
     }
+    // R key = rear + neigh on command (any time, won't interfere with gameplay)
+    if (e.code === 'KeyR' && !horse.rearing) {
+      horse.rearing = true; horse.rearT = 0;
+      neighAudio.currentTime = 0; neighAudio.play().catch(()=>{});
+    }
   });
 
   canvas.addEventListener('click', () => {
@@ -2942,8 +2947,8 @@
 
     }
 
-    // Victory rear animation — horse stands on hind legs, then settles
-    if (state === 'won' && horse.rearing) {
+    // Rear animation — horse stands on hind legs, then settles (works in any state)
+    if (horse.rearing) {
       horse.rearT += 1 / 60;  // ~60fps timer
       // Rear lasts ~1.8s (matches neigh), then settle back down over 0.4s
       if (horse.rearT > 2.2) {
