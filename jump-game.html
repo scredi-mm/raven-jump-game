@@ -98,7 +98,7 @@
   const SPRITE = {
     fw: 128, fh: 71,  // Spirit horse frame size
     anims: {
-      gallop: { row: 0, frames: 12, fps: 14 },
+      gallop: { row: 0, frames: 12, fps: 7 },
       idle:   { row: 1, frames: 1,  fps: 1  },
       // No dedicated jump/trot/graze rows — reuse gallop + rotation tricks
       jump:   { row: 0, frames: 12, fps: 14 },
@@ -2384,9 +2384,10 @@
     } else if (animName === 'jump') {
       frameIdx = getJumpFrame(jp, jt, anim.frames);
     } else if (animName === 'gallop' || animName === 'trot') {
-      // Sync directly to gallopT for perfect audio sync
-      // Use half-speed for 12-frame animations: full cycle takes 2 strides
-      frameIdx = Math.floor(gT * anim.frames * 0.35) % anim.frames;
+      // Use timer-based animation at controlled fps (not tied to gallopT)
+      spriteAnim.play(animName);
+      spriteAnim.update(1/60);
+      frameIdx = spriteAnim.frameIndex;
     } else {
       // Idle: use timer-based animation
       spriteAnim.play(animName);
