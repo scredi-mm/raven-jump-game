@@ -1856,8 +1856,8 @@
   // ══════════════════════════════════════════════════════════════════════════
 
   const GALLOP_FRONT = [
-    [-35,  15,  30], [-15,  10,  10], [ 15,   5,   5], [ 50, -15,  10],
-    [ 75, -25,  20], [ 40,  40,  35], [-10,  80,  60], [-40,  60,  50],
+    [-38,  15,  30], [-18,  10,  10], [ 22,   3,   5], [ 60, -20,   8],
+    [ 92, -30,  15], [ 48,  42,  35], [-10,  80,  60], [-42,  62,  50],
   ];
   const GALLOP_HIND = [
     [-30,  10,  15], [-40,  50,  45], [-20,  70,  55], [ 15,  45,  30],
@@ -1880,26 +1880,38 @@
     const [uL, lL, cL] = segs;
     const sa = deg(shoulder), ka = deg(knee), fa = deg(fetlock);
     ctx.save(); ctx.translate(ox, oy);
-    // Upper leg — tapered, muscular
+    // Upper leg — thick, muscular (Spirit's powerful legs)
     ctx.rotate(sa);
     ctx.fillStyle = color;
-    ctx.beginPath(); ctx.moveTo(-5,0); ctx.lineTo(-4,uL); ctx.lineTo(4,uL); ctx.lineTo(5,0); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-6,0); ctx.lineTo(-4.5,uL); ctx.lineTo(4.5,uL); ctx.lineTo(6,0); ctx.closePath(); ctx.fill();
+    // Upper leg muscle highlight
+    ctx.fillStyle = color === '#0a0a0a' ? '#151515' : '#1c1c1c';
+    ctx.beginPath(); ctx.ellipse(0, uL*0.4, 5, uL*0.35, 0, 0, Math.PI*2); ctx.fill();
     // Knee joint bulge
     ctx.translate(0, uL); ctx.rotate(ka);
     ctx.fillStyle = color;
-    ctx.beginPath(); ctx.ellipse(0, 0, 5.5, 4, 0, 0, Math.PI*2); ctx.fill();
-    // Lower leg — thinner
-    ctx.beginPath(); ctx.moveTo(-3.5,0); ctx.lineTo(-3,lL); ctx.lineTo(3,lL); ctx.lineTo(3.5,0); ctx.closePath(); ctx.fill();
-    // Fetlock joint
+    ctx.beginPath(); ctx.ellipse(0, 0, 6, 4.5, 0, 0, Math.PI*2); ctx.fill();
+    // Lower leg — defined tendons
+    ctx.beginPath(); ctx.moveTo(-3.8,0); ctx.lineTo(-3.2,lL); ctx.lineTo(3.2,lL); ctx.lineTo(3.8,0); ctx.closePath(); ctx.fill();
+    // Tendon line
+    ctx.strokeStyle = color === '#0a0a0a' ? '#141414' : '#1a1a1a';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath(); ctx.moveTo(-2, 2); ctx.lineTo(-2.5, lL-1); ctx.stroke();
+    // Fetlock joint — with tuft of hair
     ctx.translate(0, lL); ctx.rotate(fa);
     ctx.fillStyle = color;
-    ctx.beginPath(); ctx.ellipse(0, 0, 4, 3.5, 0, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(0, 0, 4.5, 4, 0, 0, Math.PI*2); ctx.fill();
     // Cannon/pastern — slender
     ctx.beginPath(); ctx.moveTo(-3,0); ctx.lineTo(-2.5,cL); ctx.lineTo(2.5,cL); ctx.lineTo(3,0); ctx.closePath(); ctx.fill();
-    // Hoof — hard, defined shape
+    // Hoof — hard, defined, slightly angled
     ctx.translate(0, cL);
-    ctx.fillStyle = '#111';
-    ctx.beginPath(); ctx.ellipse(0, 2, 6, 5, 0, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#0e0e0e';
+    ctx.beginPath();
+    ctx.moveTo(-6, 0); ctx.lineTo(-7, 4); ctx.lineTo(6, 5); ctx.lineTo(7, 1); ctx.lineTo(5, -1);
+    ctx.closePath(); ctx.fill();
+    // Hoof shine
+    ctx.fillStyle = '#1a1a1a';
+    ctx.beginPath(); ctx.ellipse(0, 2, 4, 2.5, 0, 0, Math.PI*2); ctx.fill();
     ctx.restore();
   }
 
@@ -1908,45 +1920,57 @@
   function drawRavenBody(x, y, tilt) {
     ctx.save(); ctx.translate(x, y); ctx.rotate(tilt);
 
-    // Main body silhouette — follows real horse anatomy
-    ctx.fillStyle = '#0e0e0e';
+    // Spirit-style body — powerful wild mustang build, deep chest, athletic
+    ctx.fillStyle = '#0c0c0c';
     ctx.beginPath();
-    ctx.moveTo(34, -30);                                     // girth (front-bottom)
-    ctx.bezierCurveTo(38, -42, 38, -58, 30, -70);           // chest rising to shoulder
-    ctx.bezierCurveTo(24, -80, 16, -86, 10, -88);           // shoulder to withers peak
-    ctx.bezierCurveTo(0, -86, -14, -84, -26, -82);          // withers across the back
-    ctx.bezierCurveTo(-36, -80, -44, -76, -48, -70);        // loin to croup (hip peak)
-    ctx.bezierCurveTo(-54, -60, -56, -48, -54, -38);        // rump curves down
-    ctx.bezierCurveTo(-52, -30, -46, -26, -38, -24);        // under rump to thigh
-    ctx.bezierCurveTo(-26, -22, -10, -22, 8, -24);          // belly (tucked up at flank)
-    ctx.bezierCurveTo(18, -25, 28, -27, 34, -30);           // girth back to start
+    ctx.moveTo(36, -28);                                     // girth (front-bottom)
+    ctx.bezierCurveTo(42, -40, 42, -58, 34, -72);           // deep chest rising to shoulder
+    ctx.bezierCurveTo(28, -82, 18, -88, 10, -92);           // powerful shoulder to withers
+    ctx.bezierCurveTo(-2, -90, -16, -88, -28, -85);         // strong withers across back
+    ctx.bezierCurveTo(-38, -82, -46, -78, -50, -72);        // loin to croup (hip peak)
+    ctx.bezierCurveTo(-56, -62, -58, -48, -56, -38);        // round muscular rump
+    ctx.bezierCurveTo(-54, -30, -48, -26, -40, -24);        // under rump to thigh
+    ctx.bezierCurveTo(-28, -21, -10, -20, 10, -22);         // tucked belly
+    ctx.bezierCurveTo(20, -23, 30, -25, 36, -28);           // girth back to start
     ctx.closePath(); ctx.fill();
 
-    // Shoulder muscle
-    ctx.fillStyle = '#1c1c1c';
-    ctx.beginPath(); ctx.ellipse(22, -54, 16, 14, -0.4, 0, Math.PI*2); ctx.fill();
-    // Haunch muscle
-    ctx.beginPath(); ctx.ellipse(-40, -50, 14, 13, 0.3, 0, Math.PI*2); ctx.fill();
-    // Barrel ribcage highlight
+    // Powerful shoulder muscle — Spirit's distinctive front
     ctx.fillStyle = '#1a1a1a';
-    ctx.beginPath(); ctx.ellipse(-6, -52, 24, 16, -0.08, 0, Math.PI*2); ctx.fill();
-    // Topline sheen (glossy coat along the back)
-    ctx.fillStyle = '#303030';
+    ctx.beginPath(); ctx.ellipse(24, -56, 18, 16, -0.35, 0, Math.PI*2); ctx.fill();
+    // Inner shoulder definition
+    ctx.fillStyle = '#222';
+    ctx.beginPath(); ctx.ellipse(26, -60, 10, 10, -0.3, 0, Math.PI*2); ctx.fill();
+    // Haunch muscle — big, powerful
+    ctx.fillStyle = '#1a1a1a';
+    ctx.beginPath(); ctx.ellipse(-42, -52, 16, 15, 0.3, 0, Math.PI*2); ctx.fill();
+    // Inner haunch
+    ctx.fillStyle = '#222';
+    ctx.beginPath(); ctx.ellipse(-44, -54, 9, 10, 0.25, 0, Math.PI*2); ctx.fill();
+    // Barrel ribcage — broad
+    ctx.fillStyle = '#181818';
+    ctx.beginPath(); ctx.ellipse(-6, -54, 26, 18, -0.06, 0, Math.PI*2); ctx.fill();
+    // Topline sheen — glossy coat
+    ctx.fillStyle = '#2e2e2e';
     ctx.beginPath();
-    ctx.moveTo(26, -84); ctx.bezierCurveTo(12, -88, -8, -86, -22, -84);
-    ctx.bezierCurveTo(-36, -82, -44, -78, -48, -72);
-    ctx.bezierCurveTo(-44, -76, -36, -80, -22, -82);
-    ctx.bezierCurveTo(-8, -84, 12, -86, 26, -82);
+    ctx.moveTo(28, -88); ctx.bezierCurveTo(12, -92, -10, -90, -24, -87);
+    ctx.bezierCurveTo(-38, -84, -46, -80, -50, -74);
+    ctx.bezierCurveTo(-46, -78, -38, -82, -24, -85);
+    ctx.bezierCurveTo(-10, -88, 12, -90, 28, -86);
     ctx.closePath(); ctx.fill();
-    // Specular highlight (wet/glossy look)
-    ctx.fillStyle = '#383838';
-    ctx.beginPath(); ctx.ellipse(4, -84, 18, 4, -0.1, 0, Math.PI*2); ctx.fill();
-    // Chest definition
+    // Specular highlight — wet glossy look
+    ctx.fillStyle = '#363636';
+    ctx.beginPath(); ctx.ellipse(2, -88, 20, 4.5, -0.08, 0, Math.PI*2); ctx.fill();
+    // Deep chest definition
     ctx.fillStyle = '#1a1a1a';
-    ctx.beginPath(); ctx.ellipse(36, -48, 8, 18, 0.2, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(40, -50, 9, 20, 0.2, 0, Math.PI*2); ctx.fill();
     // Belly shadow
-    ctx.fillStyle = '#080808';
-    ctx.beginPath(); ctx.ellipse(-6, -25, 30, 5, 0, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#060606';
+    ctx.beginPath(); ctx.ellipse(-6, -23, 32, 5, 0, 0, Math.PI*2); ctx.fill();
+    // Flank crease
+    ctx.strokeStyle = '#181818'; ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(-20, -30); ctx.bezierCurveTo(-28, -38, -34, -50, -36, -62);
+    ctx.stroke();
     ctx.restore();
   }
 
@@ -1955,80 +1979,130 @@
   function drawRavenHead(x, y, tilt) {
     ctx.save(); ctx.translate(x, y); ctx.rotate(tilt);
 
-    // Neck — thick, muscular, arched
-    ctx.fillStyle = '#0e0e0e';
+    // Spirit-style neck — thick, powerfully arched, crested
+    ctx.fillStyle = '#0c0c0c';
     ctx.beginPath();
-    ctx.moveTo(28, -70);                                     // base at withers/shoulder
-    ctx.bezierCurveTo(38, -80, 48, -95, 54, -112);          // front of neck (jugular side)
-    ctx.bezierCurveTo(56, -118, 56, -124, 52, -122);        // crest at poll
-    ctx.bezierCurveTo(46, -118, 38, -104, 30, -88);         // back of neck (mane side)
+    ctx.moveTo(28, -72);                                     // base at withers/shoulder
+    ctx.bezierCurveTo(36, -82, 46, -98, 52, -114);          // front of neck (jugular)
+    ctx.bezierCurveTo(54, -120, 54, -126, 50, -126);        // crest at poll
+    ctx.bezierCurveTo(44, -122, 34, -106, 26, -90);         // back of neck (mane side)
+    ctx.closePath(); ctx.fill();
+    // Thick neck crest — Spirit's muscular arch
+    ctx.fillStyle = '#141414';
+    ctx.beginPath();
+    ctx.moveTo(26, -90); ctx.bezierCurveTo(30, -100, 36, -112, 42, -120);
+    ctx.bezierCurveTo(46, -124, 50, -126, 50, -126);
+    ctx.bezierCurveTo(44, -124, 36, -116, 30, -104);
     ctx.closePath(); ctx.fill();
     // Neck muscle definition
-    ctx.fillStyle = '#1e1e1e';
-    ctx.beginPath(); ctx.ellipse(42, -100, 9, 20, 0.35, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#1c1c1c';
+    ctx.beginPath(); ctx.ellipse(40, -102, 10, 22, 0.35, 0, Math.PI*2); ctx.fill();
     // Neck sheen
-    ctx.fillStyle = '#2a2a2a';
-    ctx.beginPath(); ctx.ellipse(44, -104, 6, 16, 0.3, 0, Math.PI*2); ctx.fill();
-    // Jugular groove (subtle dark line)
-    ctx.strokeStyle = '#0a0a0a'; ctx.lineWidth = 1.5;
+    ctx.fillStyle = '#282828';
+    ctx.beginPath(); ctx.ellipse(42, -106, 6, 18, 0.3, 0, Math.PI*2); ctx.fill();
+    // Jugular groove
+    ctx.strokeStyle = '#080808'; ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.moveTo(34, -76); ctx.bezierCurveTo(42, -88, 50, -100, 53, -112);
+    ctx.moveTo(34, -78); ctx.bezierCurveTo(42, -90, 50, -104, 52, -114);
+    ctx.stroke();
+    // Throatlatch definition
+    ctx.strokeStyle = '#0a0a0a'; ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(48, -118); ctx.bezierCurveTo(44, -114, 38, -106, 34, -96);
     ctx.stroke();
 
-    // Head — long, refined face
-    ctx.fillStyle = '#0e0e0e';
+    // Spirit-style head — broad forehead, tapered muzzle, strong jaw, dish face
+    ctx.fillStyle = '#0c0c0c';
     ctx.beginPath();
-    ctx.moveTo(52, -122);                                    // poll
-    ctx.bezierCurveTo(58, -126, 66, -124, 72, -118);        // forehead
-    ctx.bezierCurveTo(78, -112, 82, -104, 82, -98);         // bridge of nose
-    ctx.bezierCurveTo(82, -92, 80, -88, 76, -87);           // muzzle
-    ctx.bezierCurveTo(70, -86, 64, -88, 60, -94);           // jaw
-    ctx.bezierCurveTo(56, -98, 52, -108, 50, -116);         // cheek to throatlatch
-    ctx.bezierCurveTo(50, -118, 51, -122, 52, -122);        // back to poll
+    ctx.moveTo(50, -126);                                    // poll
+    ctx.bezierCurveTo(56, -131, 66, -130, 74, -124);        // wide forehead (Spirit's broad brow)
+    ctx.bezierCurveTo(80, -118, 84, -110, 84, -102);        // bridge of nose (slight dish)
+    ctx.bezierCurveTo(84, -96, 83, -92, 80, -88);           // nose tapers to muzzle
+    ctx.bezierCurveTo(78, -85, 74, -84, 70, -84);           // soft muzzle
+    ctx.bezierCurveTo(64, -84, 58, -86, 56, -92);           // chin/jaw
+    ctx.bezierCurveTo(52, -98, 48, -110, 48, -120);         // strong jawline to throatlatch
+    ctx.bezierCurveTo(48, -123, 49, -126, 50, -126);        // back to poll
     ctx.closePath(); ctx.fill();
-    // Cheekbone highlight
+
+    // Cheekbone — prominent like Spirit
     ctx.fillStyle = '#1a1a1a';
-    ctx.beginPath(); ctx.ellipse(64, -106, 10, 8, -0.2, 0, Math.PI*2); ctx.fill();
-    // Head sheen
-    ctx.fillStyle = '#282828';
-    ctx.beginPath(); ctx.ellipse(68, -114, 6, 4, -0.3, 0, Math.PI*2); ctx.fill();
-    // Muzzle — slightly warmer
+    ctx.beginPath(); ctx.ellipse(64, -108, 12, 10, -0.15, 0, Math.PI*2); ctx.fill();
+    // Jaw muscle
+    ctx.fillStyle = '#161616';
+    ctx.beginPath(); ctx.ellipse(58, -98, 8, 6, -0.3, 0, Math.PI*2); ctx.fill();
+    // Forehead highlight
+    ctx.fillStyle = '#262626';
+    ctx.beginPath(); ctx.ellipse(70, -120, 8, 5, -0.2, 0, Math.PI*2); ctx.fill();
+    // Nose bridge — slight dish (Spirit's characteristic profile)
+    ctx.fillStyle = '#1e1e1e';
+    ctx.beginPath();
+    ctx.moveTo(76, -118); ctx.bezierCurveTo(80, -114, 83, -108, 84, -102);
+    ctx.bezierCurveTo(82, -106, 78, -112, 74, -116);
+    ctx.closePath(); ctx.fill();
+
+    // Muzzle — soft, velvety
     ctx.fillStyle = '#181818';
-    ctx.beginPath(); ctx.ellipse(80, -94, 8, 7, 0.1, 0, Math.PI*2); ctx.fill();
-    // Nostrils
-    ctx.fillStyle = '#3a1015';
-    ctx.beginPath(); ctx.ellipse(83, -92, 4, 2.8, 0.3, 0, Math.PI*2); ctx.fill();
-    ctx.fillStyle = '#2a0a10';
-    ctx.beginPath(); ctx.ellipse(81, -91, 3, 2, 0.5, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(76, -88, 10, 8, 0.1, 0, Math.PI*2); ctx.fill();
+    // Muzzle sheen
+    ctx.fillStyle = '#242424';
+    ctx.beginPath(); ctx.ellipse(78, -90, 5, 4, 0.1, 0, Math.PI*2); ctx.fill();
+    // Nostrils — flared, expressive (Spirit shows emotion through nostrils)
+    ctx.fillStyle = '#3a1218';
+    ctx.beginPath(); ctx.ellipse(83, -88, 4.5, 3.2, 0.2, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#2a0a12';
+    ctx.beginPath(); ctx.ellipse(82, -87, 3.2, 2.2, 0.4, 0, Math.PI*2); ctx.fill();
+    // Lower lip line
+    ctx.strokeStyle = '#0a0a0a'; ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(70, -84); ctx.bezierCurveTo(74, -83, 78, -84, 80, -85);
+    ctx.stroke();
 
-    // Eye — big, expressive (Raven style)
-    ctx.fillStyle = '#f4f0ec';
-    ctx.beginPath(); ctx.ellipse(64, -116, 6.5, 5, -0.12, 0, Math.PI*2); ctx.fill();
-    ctx.fillStyle = '#3a1a08';
-    ctx.beginPath(); ctx.ellipse(65, -116, 4.5, 4.5, 0, 0, Math.PI*2); ctx.fill();
-    ctx.fillStyle = '#0a0400';
-    ctx.beginPath(); ctx.ellipse(65.5, -116, 2.5, 2.8, 0, 0, Math.PI*2); ctx.fill();
-    // Life spark
+    // Eye — Spirit's iconic large, almond-shaped, deeply expressive eye
+    // White (sclera)
+    ctx.fillStyle = '#f0ece6';
+    ctx.beginPath(); ctx.ellipse(66, -118, 8, 5.5, -0.1, 0, Math.PI*2); ctx.fill();
+    // Iris — warm amber-brown (Spirit's eye color, darkened for Raven)
+    ctx.fillStyle = '#3a1c0a';
+    ctx.beginPath(); ctx.ellipse(67, -118, 5.5, 5.2, 0, 0, Math.PI*2); ctx.fill();
+    // Pupil — large, deep
+    ctx.fillStyle = '#080200';
+    ctx.beginPath(); ctx.ellipse(67.5, -118, 3.2, 3.5, 0, 0, Math.PI*2); ctx.fill();
+    // Life spark — bright catchlight
     ctx.fillStyle = '#fff';
-    ctx.beginPath(); ctx.arc(67, -117.5, 1.6, 0, Math.PI*2); ctx.fill();
-    ctx.fillStyle = 'rgba(255,255,255,0.5)';
-    ctx.beginPath(); ctx.arc(63.5, -114.5, 0.8, 0, Math.PI*2); ctx.fill();
-    // Eyelid/lash
-    ctx.strokeStyle = '#1a1a1a'; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.arc(64, -116, 6.5, 0.3, Math.PI-0.3); ctx.stroke();
-    ctx.strokeStyle = '#050505'; ctx.lineWidth = 2.5;
-    ctx.beginPath(); ctx.arc(64, -116, 7, -0.7, -2.4, true); ctx.stroke();
+    ctx.beginPath(); ctx.arc(69.5, -119.5, 2, 0, Math.PI*2); ctx.fill();
+    // Secondary catchlight
+    ctx.fillStyle = 'rgba(255,255,255,0.45)';
+    ctx.beginPath(); ctx.arc(65, -116.5, 1, 0, Math.PI*2); ctx.fill();
+    // Eyelid — heavy, expressive (Spirit's defining feature)
+    ctx.strokeStyle = '#0a0a0a'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(66, -118, 8, -2.6, -0.5); ctx.stroke();
+    // Lower lid
+    ctx.strokeStyle = '#161616'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(66, -118, 7.5, 0.3, Math.PI-0.3); ctx.stroke();
+    // Thick lashes — Spirit's expressive lashes
+    ctx.strokeStyle = '#050505'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(66, -118, 8.5, -1.8, -0.8); ctx.stroke();
+    // Brow ridge
+    ctx.strokeStyle = '#1a1a1a'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(58, -122); ctx.bezierCurveTo(62, -125, 70, -126, 74, -124);
+    ctx.stroke();
 
-    // Ears
+    // Ears — tall, alert, expressive (Spirit always has perked ears)
     ctx.fillStyle = '#0a0a0a';
-    ctx.beginPath(); ctx.moveTo(52,-122); ctx.bezierCurveTo(48,-132,49,-140,53,-144);
-    ctx.bezierCurveTo(56,-140,57,-132,56,-124); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(50,-126); ctx.bezierCurveTo(46,-136, 46,-146, 51,-152);
+    ctx.bezierCurveTo(54,-146, 55,-136, 54,-128); ctx.closePath(); ctx.fill();
     ctx.fillStyle = '#0e0e0e';
-    ctx.beginPath(); ctx.moveTo(56,-122); ctx.bezierCurveTo(54,-132,55,-141,59,-146);
-    ctx.bezierCurveTo(63,-141,63,-132,60,-124); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#2a0808';
-    ctx.beginPath(); ctx.moveTo(57,-124); ctx.bezierCurveTo(55,-132,56,-139,59,-143);
-    ctx.bezierCurveTo(62,-139,62,-132,59,-125); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(55,-126); ctx.bezierCurveTo(52,-136, 53,-147, 58,-154);
+    ctx.bezierCurveTo(62,-147, 62,-136, 59,-128); ctx.closePath(); ctx.fill();
+    // Inner ear — warm pink
+    ctx.fillStyle = '#2a0a0a';
+    ctx.beginPath(); ctx.moveTo(56,-129); ctx.bezierCurveTo(53,-138, 54,-146, 57,-151);
+    ctx.bezierCurveTo(60,-146, 61,-138, 58,-130); ctx.closePath(); ctx.fill();
+    // Second ear inner
+    ctx.fillStyle = '#280808';
+    ctx.beginPath(); ctx.moveTo(51,-129); ctx.bezierCurveTo(48,-138, 47,-145, 51,-150);
+    ctx.bezierCurveTo(53,-145, 54,-138, 53,-130); ctx.closePath(); ctx.fill();
 
     ctx.restore();
   }
@@ -2039,29 +2113,36 @@
     ctx.save(); ctx.translate(x, y); ctx.rotate(tilt);
     ctx.lineCap = 'round';
 
-    // 16 strands along the crest of the neck (poll to withers)
-    for (let i = 0; i < 16; i++) {
-      const t = i / 15;
-      const ax = lerp(56, 30, t);
-      const ay = lerp(-128, -82, t);
-      const w = moving ? Math.sin(gT*Math.PI*2 + i*0.7) * (5 + t*9) : 0;
-      const w2 = moving ? Math.cos(gT*Math.PI*1.6 + i*1.1) * (3 + t*5) : 0;
-      const endX = ax - 16 - t*14 + w;
-      const endY = ay - 4 - t*3 + w2;
-      ctx.strokeStyle = ['#0a0a0a','#151515','#0e0e0e','#121212'][i % 4];
-      ctx.lineWidth = 3.2 - t * 1.2;
+    // Spirit's iconic wild mane — long, thick, flowing dramatically in the wind
+    // 22 strands along the crest (poll to withers), much longer than before
+    for (let i = 0; i < 22; i++) {
+      const t = i / 21;
+      const ax = lerp(54, 26, t);           // anchor along neck crest
+      const ay = lerp(-130, -86, t);
+      const windBase = moving ? 8 + t * 16 : 0;  // stronger wind on longer strands
+      const w = moving ? Math.sin(gT*Math.PI*2 + i*0.55) * windBase : 0;
+      const w2 = moving ? Math.cos(gT*Math.PI*1.4 + i*0.9) * (4 + t*8) : 0;
+      const len = 22 + t * 24;              // strands get longer toward withers
+      const endX = ax - len + w;
+      const endY = ay - 6 - t*6 + w2;
+      const midX = ax - len*0.5 + w*0.3;
+      const midY = ay - 12 + w2*0.4;
+      ctx.strokeStyle = ['#080808','#131313','#0c0c0c','#101010','#060606'][i % 5];
+      ctx.lineWidth = 3.8 - t * 1.0;
       ctx.beginPath(); ctx.moveTo(ax, ay);
-      ctx.quadraticCurveTo(ax - 8 + w*0.4, ay - 10, endX, endY);
+      ctx.bezierCurveTo(midX, midY, midX - 6 + w*0.6, endY + 4, endX, endY);
       ctx.stroke();
     }
 
-    // Forelock (bangs between the ears)
-    for (let i = 0; i < 5; i++) {
-      const w = moving ? Math.sin(gT*Math.PI*2.5 + i*1.4) * 3 : 0;
-      ctx.strokeStyle = i%2===0 ? '#0a0a0a' : '#121212';
-      ctx.lineWidth = 2.5;
-      ctx.beginPath(); ctx.moveTo(55 + i*1.5, -124);
-      ctx.quadraticCurveTo(60 + w, -119, 63 + w + i, -112);
+    // Spirit's forelock — long, wild bangs sweeping across the forehead
+    for (let i = 0; i < 8; i++) {
+      const w = moving ? Math.sin(gT*Math.PI*2.2 + i*1.2) * 5 : 0;
+      const w2 = moving ? Math.cos(gT*Math.PI*1.8 + i*0.8) * 3 : 0;
+      ctx.strokeStyle = ['#080808','#111','#0a0a0a','#0e0e0e'][i % 4];
+      ctx.lineWidth = 3 - i * 0.2;
+      const sx = 53 + i*1.2;
+      ctx.beginPath(); ctx.moveTo(sx, -128);
+      ctx.bezierCurveTo(sx + 4 + w, -120, 62 + w, -114 + w2, 66 + w + i*0.5, -108 + w2);
       ctx.stroke();
     }
     ctx.restore();
@@ -2072,18 +2153,29 @@
   function drawTailHair(x, y, tilt, gT, moving) {
     ctx.save(); ctx.translate(x, y); ctx.rotate(tilt);
     ctx.lineCap = 'round';
-    const bx = -54, by = -44;
-    for (let i = 0; i < 10; i++) {
-      const sp = (i - 4.5) * 5;
-      const w = moving ? Math.sin(gT*Math.PI*1.2 + i*0.7) * 16 : 0;
-      const w2 = moving ? Math.cos(gT*Math.PI*1.5 + i*1.0) * 8 : 0;
-      ctx.strokeStyle = ['#0a0a0a','#121212','#0e0e0e'][i % 3];
-      ctx.lineWidth = 3.8 - Math.abs(i - 4.5) * 0.4;
-      ctx.beginPath(); ctx.moveTo(bx, by);
+    const bx = -56, by = -44;
+
+    // Spirit's long, wild, dramatic tail — thick and flowing
+    // Tail dock (the fleshy base)
+    ctx.fillStyle = '#0c0c0c';
+    ctx.beginPath();
+    ctx.moveTo(bx, by - 4); ctx.bezierCurveTo(bx-4, by+2, bx-8, by+10, bx-10, by+16);
+    ctx.bezierCurveTo(bx-6, by+14, bx-2, by+6, bx+2, by-2);
+    ctx.closePath(); ctx.fill();
+
+    // 14 thick flowing strands — much longer than before
+    for (let i = 0; i < 14; i++) {
+      const sp = (i - 6.5) * 4.5;
+      const w = moving ? Math.sin(gT*Math.PI*1.1 + i*0.6) * 22 : 0;
+      const w2 = moving ? Math.cos(gT*Math.PI*1.4 + i*0.85) * 12 : 0;
+      const w3 = moving ? Math.sin(gT*Math.PI*0.8 + i*1.2) * 8 : 0;
+      ctx.strokeStyle = ['#080808','#111','#0c0c0c','#0e0e0e','#060606'][i % 5];
+      ctx.lineWidth = 4.2 - Math.abs(i - 6.5) * 0.35;
+      ctx.beginPath(); ctx.moveTo(bx - 8, by + 12);
       ctx.bezierCurveTo(
-        bx-20+w*0.3+sp*0.3, by+20,
-        bx-34+w+sp*0.5, by+44+w2,
-        bx-42+w*1.4+sp, by+70+w2
+        bx-24+w*0.3+sp*0.3, by+30+w3,
+        bx-42+w*0.7+sp*0.5, by+56+w2,
+        bx-54+w*1.4+sp, by+86+w2
       );
       ctx.stroke();
     }
