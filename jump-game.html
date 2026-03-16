@@ -113,8 +113,7 @@
          cloudAlpha: 0.2, theme: 'Volcanic Peak' },
   };
   let score = 0, speed = 3, frame = 0;
-  localStorage.setItem('ravenHighScore', '19');
-  let highScore = 19;
+  let highScore = Math.max(35, parseInt(localStorage.getItem('ravenHighScore') || '35'));
   let obstacles = [], nextObsIn = 90;
   let apples = [], nextAppleIn = 30;
   let trees = [], nextTreeIn = 0;
@@ -1312,7 +1311,7 @@
       );
     }
     if (state === 'dead') {
-      const isNew = score >= highScore && highScore > 0;
+      const isNew = score > highScore;
       drawOverlay(
         isNew
           ? ['\uD83C\uDFC6  New High Score!', '\uD83C\uDF4E Apples: ' + score, 'Press SPACE to continue']
