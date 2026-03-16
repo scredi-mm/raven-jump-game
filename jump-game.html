@@ -1644,24 +1644,57 @@
 
   function drawBoulder(x, y, w, h) {
     const cx = x+w*0.5, cy = y+h*0.55;
-    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    const t = performance.now() * 0.001;
+    // Shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
     ctx.beginPath(); ctx.ellipse(cx, y+h+3, w*0.45, 6, 0, 0, Math.PI*2); ctx.fill();
-    ctx.fillStyle = '#686868';
+    // Dark volcanic rock base
+    ctx.fillStyle = '#1a1a1a';
     ctx.beginPath(); ctx.ellipse(cx, cy, w*0.5, h*0.48, 0.15, 0, Math.PI*2); ctx.fill();
-    ctx.fillStyle = '#808080';
-    ctx.beginPath(); ctx.ellipse(cx-w*0.08, cy-h*0.05, w*0.38, h*0.36, -0.1, 0, Math.PI*2); ctx.fill();
-    ctx.fillStyle = '#c0c0c0';
-    ctx.beginPath(); ctx.ellipse(cx-w*0.18, cy-h*0.22, w*0.14, h*0.1, -0.6, 0, Math.PI*2); ctx.fill();
-    ctx.fillStyle = '#e8e8e8';
-    ctx.beginPath(); ctx.ellipse(cx-w*0.2, cy-h*0.28, w*0.06, h*0.04, -0.4, 0, Math.PI*2); ctx.fill();
-    ctx.strokeStyle = '#404040'; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(cx+w*0.05, cy-h*0.1); ctx.lineTo(cx+w*0.15, cy+h*0.12);
-    ctx.lineTo(cx+w*0.08, cy+h*0.25); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(cx-w*0.1, cy+h*0.05); ctx.lineTo(cx-w*0.02, cy+h*0.2); ctx.stroke();
-    ctx.fillStyle = 'rgba(60,90,40,0.55)';
-    ctx.beginPath(); ctx.ellipse(cx-w*0.2, y+h-4, w*0.18, 6, 0.3, 0, Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(cx+w*0.15, y+h-2, w*0.12, 4, -0.2, 0, Math.PI*2); ctx.fill();
-    if (w > 50) { ctx.fillStyle = 'rgba(240,245,255,0.85)'; ctx.beginPath(); ctx.ellipse(cx-w*0.08, y+h*0.18, w*0.28, h*0.12, -0.3, 0, Math.PI*2); ctx.fill(); }
+    // Slightly lighter rock surface
+    ctx.fillStyle = '#2a2a2a';
+    ctx.beginPath(); ctx.ellipse(cx-w*0.06, cy-h*0.04, w*0.4, h*0.38, -0.1, 0, Math.PI*2); ctx.fill();
+    // Dark charcoal highlights
+    ctx.fillStyle = '#383838';
+    ctx.beginPath(); ctx.ellipse(cx-w*0.15, cy-h*0.18, w*0.16, h*0.12, -0.5, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(cx+w*0.12, cy+h*0.08, w*0.12, h*0.09, 0.3, 0, Math.PI*2); ctx.fill();
+    // Glowing lava cracks — pulsing brightness
+    const glow = 0.7 + 0.3 * Math.sin(t * 2.5);
+    const r1 = Math.floor(255 * glow), g1 = Math.floor(120 * glow);
+    const r2 = Math.floor(255 * glow), g2 = Math.floor(60 * glow);
+    // Main crack
+    ctx.strokeStyle = `rgb(${r1},${g1},0)`;
+    ctx.lineWidth = 2.5;
+    ctx.shadowColor = `rgba(255,80,0,${0.5*glow})`; ctx.shadowBlur = 8;
+    ctx.beginPath();
+    ctx.moveTo(cx-w*0.2, cy-h*0.3);
+    ctx.lineTo(cx-w*0.05, cy-h*0.05);
+    ctx.lineTo(cx+w*0.1, cy+h*0.1);
+    ctx.lineTo(cx+w*0.05, cy+h*0.3);
+    ctx.stroke();
+    // Branch crack
+    ctx.strokeStyle = `rgb(${r2},${g2},0)`;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cx-w*0.05, cy-h*0.05);
+    ctx.lineTo(cx+w*0.2, cy-h*0.15);
+    ctx.lineTo(cx+w*0.28, cy+h*0.05);
+    ctx.stroke();
+    // Small side crack
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(cx+w*0.1, cy+h*0.1);
+    ctx.lineTo(cx-w*0.12, cy+h*0.2);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    // Tiny lava dots in cracks
+    ctx.fillStyle = `rgb(255,${Math.floor(180*glow)},0)`;
+    ctx.beginPath(); ctx.arc(cx-w*0.05, cy-h*0.05, 2.5, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx+w*0.1, cy+h*0.1, 2, 0, Math.PI*2); ctx.fill();
+    // Subtle orange glow around rock
+    ctx.strokeStyle = `rgba(255,60,0,${0.15*glow})`;
+    ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.ellipse(cx, cy, w*0.52, h*0.5, 0.15, 0, Math.PI*2); ctx.stroke();
   }
 
   function drawLog(x, y, w, h) {
