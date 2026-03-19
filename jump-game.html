@@ -33,9 +33,113 @@
       font-size: 13px;
       letter-spacing: 0.5px;
     }
+    #fb-btn {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: rgba(60,40,90,0.7);
+      color: #ccbbee;
+      border: 1px solid rgba(150,120,200,0.4);
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-family: Arial, sans-serif;
+      cursor: pointer;
+      z-index: 1000;
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+    }
+    #fb-btn:hover { background: rgba(80,50,120,0.85); }
+    #fb-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(5,2,15,0.85);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+      font-family: Arial, sans-serif;
+    }
+    #fb-overlay.open { display: flex; }
+    #fb-panel {
+      background: linear-gradient(135deg, #1a1030, #12081f);
+      border: 1px solid rgba(150,120,200,0.3);
+      border-radius: 14px;
+      padding: 28px 24px;
+      width: 340px;
+      max-width: 90vw;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+      position: relative;
+    }
+    #fb-panel h2 {
+      color: #e0d0ff;
+      font-size: 17px;
+      margin: 0 0 14px 0;
+      font-weight: 600;
+    }
+    #fb-panel textarea {
+      width: 100%;
+      height: 100px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(150,120,200,0.3);
+      border-radius: 8px;
+      color: #e8e0f0;
+      font-size: 14px;
+      font-family: Arial, sans-serif;
+      padding: 10px;
+      resize: none;
+      box-sizing: border-box;
+      outline: none;
+    }
+    #fb-panel textarea:focus { border-color: rgba(160,130,220,0.6); }
+    #fb-panel textarea::placeholder { color: rgba(180,160,210,0.5); }
+    #fb-send {
+      margin-top: 12px;
+      background: rgba(100,60,180,0.8);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 24px;
+      font-size: 14px;
+      cursor: pointer;
+      font-family: Arial, sans-serif;
+    }
+    #fb-send:hover { background: rgba(120,70,200,0.9); }
+    #fb-close {
+      position: absolute;
+      top: 10px;
+      right: 14px;
+      background: none;
+      border: none;
+      color: #8870aa;
+      font-size: 22px;
+      cursor: pointer;
+      line-height: 1;
+    }
+    #fb-close:hover { color: #c0a0ee; }
+    #fb-thanks {
+      display: none;
+      color: #a0e8a0;
+      font-size: 16px;
+      text-align: center;
+      padding: 30px 0;
+    }
   </style>
 </head>
 <body>
+  <button id="fb-btn">Give Feedback</button>
+  <div id="fb-overlay">
+    <div id="fb-panel">
+      <button id="fb-close">&times;</button>
+      <h2>How can I make the game better?</h2>
+      <div id="fb-form-wrap">
+        <textarea id="fb-text" placeholder="Type your feedback here..."></textarea>
+        <button id="fb-send">Send</button>
+      </div>
+      <div id="fb-thanks">Thanks for your feedback!</div>
+    </div>
+  </div>
+  <iframe id="fb-iframe" name="fb-iframe" style="display:none"></iframe>
   <canvas id="c" width="800" height="380"></canvas>
   <div id="hint"></div>
   <script>
@@ -43,6 +147,62 @@
     document.getElementById('hint').innerHTML = _isMobileHint
       ? 'TAP = jump &nbsp;|&nbsp; SWIPE ↑↓ = switch path &nbsp;|&nbsp; DOUBLE-TAP = rear'
       : 'SPACE = jump &nbsp;|&nbsp; ↑ / ↓ = switch path &nbsp;|&nbsp; 1-8 = pick level &nbsp;|&nbsp; C = fullscreen &nbsp;|&nbsp; B = exit';
+  </script>
+  <script>
+  // --- Feedback system ---
+  (function() {
+    const fbBtn = document.getElementById('fb-btn');
+    const fbOverlay = document.getElementById('fb-overlay');
+    const fbClose = document.getElementById('fb-close');
+    const fbText = document.getElementById('fb-text');
+    const fbSend = document.getElementById('fb-send');
+    const fbFormWrap = document.getElementById('fb-form-wrap');
+    const fbThanks = document.getElementById('fb-thanks');
+
+    function openFeedback() {
+      fbOverlay.classList.add('open');
+      fbFormWrap.style.display = 'block';
+      fbThanks.style.display = 'none';
+      fbText.value = '';
+      fbText.focus();
+    }
+    function closeFeedback() {
+      fbOverlay.classList.remove('open');
+    }
+    fbBtn.addEventListener('click', openFeedback);
+    fbBtn.addEventListener('touchend', function(e) { e.preventDefault(); openFeedback(); });
+    fbClose.addEventListener('click', closeFeedback);
+    fbSend.addEventListener('click', function() {
+      const msg = fbText.value.trim();
+      if (!msg) return;
+      // Submit to Google Form via hidden iframe
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = 'https://docs.google.com/forms/d/e/1FAIpQLSeIjBXax0kYbEvmJ1NPopzR1yEKz3s5fC3L2nCm3QNZ2hlmFw/formResponse';
+      form.target = 'fb-iframe';
+      form.style.display = 'none';
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'entry.1111495181';
+      input.value = msg;
+      form.appendChild(input);
+      document.body.appendChild(form);
+      form.submit();
+      document.body.removeChild(form);
+      // Show thanks
+      fbFormWrap.style.display = 'none';
+      fbThanks.style.display = 'block';
+      setTimeout(closeFeedback, 1500);
+    });
+    // Close on overlay background click
+    fbOverlay.addEventListener('click', function(e) {
+      if (e.target === fbOverlay) closeFeedback();
+    });
+    // Prevent touch events on overlay from reaching the game
+    fbOverlay.addEventListener('touchstart', function(e) { e.stopPropagation(); });
+    fbOverlay.addEventListener('touchmove', function(e) { e.stopPropagation(); });
+    fbOverlay.addEventListener('touchend', function(e) { e.stopPropagation(); });
+  })();
   </script>
   <script>
   const canvas = document.getElementById('c');
