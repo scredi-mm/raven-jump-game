@@ -513,6 +513,7 @@
 
   canvas.addEventListener('touchstart', e => {
     e.preventDefault();
+    unlockAudio();
     const t = e.changedTouches[0];
     touchStartX = t.clientX;
     touchStartY = t.clientY;
