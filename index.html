@@ -482,6 +482,17 @@
   let lastTapTime = 0;
   let touchActive = false;
 
+  // iOS requires audio to be triggered from a user gesture to unlock playback.
+  // On the first touch, play+pause all audio objects to unlock them for later use.
+  let audioUnlocked = false;
+  function unlockAudio() {
+    if (audioUnlocked) return;
+    audioUnlocked = true;
+    [gallopAudio, neighAudio, crunchAudio].forEach(a => {
+      a.play().then(() => { a.pause(); a.currentTime = 0; }).catch(() => {});
+    });
+  }
+
   function doJumpOrStart() {
     if (state === 'playing' && horse.onGround) {
       horse.vy = JUMP_V; horse.onGround = false;
@@ -502,6 +513,7 @@
 
   canvas.addEventListener('touchstart', e => {
     e.preventDefault();
+    unlockAudio();
     const t = e.changedTouches[0];
     touchStartX = t.clientX;
     touchStartY = t.clientY;
