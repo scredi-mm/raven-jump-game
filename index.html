@@ -361,7 +361,35 @@
          cloudAlpha: 0.15, theme: 'New York City', hazard: 'cars', obstacleTheme: 'city' },
   };
   let score = 0, speed = 3, frame = 0;
-  let highScore = Math.max(35, parseInt(localStorage.getItem('ravenHighScore') || '35'));
+  let highScore = 10;
+  let highScoreName = 'Margot';
+  const HIGHSCORE_BLOB = 'https://jsonblob.com/api/jsonBlob/019d0e53-d7bc-751f-b65b-97470e6369ab';
+
+  // Fetch shared high score from online storage
+  fetch(HIGHSCORE_BLOB)
+    .then(r => r.json())
+    .then(data => {
+      if (data.highScore > 0) { highScore = data.highScore; highScoreName = data.name || '???'; }
+    })
+    .catch(() => {}); // if offline, use defaults
+
+  let justSetHighScore = false;
+
+  function saveHighScore(newScore) {
+    if (newScore <= highScore) return;
+    justSetHighScore = true;
+    // Prompt for name
+    const name = prompt('New High Score! Enter your name:');
+    if (!name) { justSetHighScore = false; return; }
+    highScore = newScore;
+    highScoreName = name.trim().slice(0, 15);
+    // Save online
+    fetch(HIGHSCORE_BLOB, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ highScore, name: highScoreName })
+    }).catch(() => {});
+  }
   let obstacles = [], nextObsIn = 90;
   let apples = [], nextAppleIn = 30;
   let trees = [], nextTreeIn = 0;
@@ -405,7 +433,7 @@
     gallopAudio.pause(); gallopPlaying = false;
     obstacles = []; trees = []; dust = []; apples = []; collectFx = []; confetti = []; lavaFlows = []; nextLavaIn = 0; rollingBoulders = []; nextBoulderIn = 0; hazardCars = []; nextCarIn = 0; snowSink = 0; snowSinkV = 0; wasInAir = false; snowBursts = [];
     const lv = LEVELS[level];
-    score = 0; speed = lv.speed; frame = 0;
+    score = 0; speed = lv.speed; frame = 0; justSetHighScore = false;
     nextObsIn = lv.obsInterval; nextTreeIn = 0; nextAppleIn = lv.appleInterval;
     appleLane = 0; appleGroupsOnLane = 0;
     worldOffset = 0; hsx = 200; cameraSpeed = 0;
@@ -2937,12 +2965,12 @@
   // ── HUD ───────────────────────────────────────────────────────────────────
 
   function drawHUD() {
-    // High score box (top right, wider to fit both scores)
+    // High score box (top right, wider to fit name + both scores)
     ctx.fillStyle = 'rgba(0,0,0,0.4)';
-    ctx.beginPath(); ctx.roundRect(W-260, 12, 248, 38, 8); ctx.fill();
-    // High score label + value
+    ctx.beginPath(); ctx.roundRect(W-310, 12, 298, 38, 8); ctx.fill();
+    // High score label + value + name
     ctx.fillStyle = '#aab8cc'; ctx.font = '13px Arial'; ctx.textAlign = 'right';
-    ctx.fillText('High Score: ' + Math.floor(highScore), W-158, 36);
+    ctx.fillText(highScoreName + ': ' + Math.floor(highScore), W-158, 36);
     // Divider
     ctx.fillStyle = 'rgba(255,255,255,0.25)';
     ctx.fillRect(W-152, 18, 1, 26);
@@ -3131,10 +3159,7 @@
         horse.jumpPhase = 'none'; horse.jumpT = 0;
         gallopAudio.pause(); gallopPlaying = false;
         neighAudio.currentTime = 0; neighAudio.play().catch(()=>{});
-        if (score > highScore) {
-          highScore = score;
-          localStorage.setItem('ravenHighScore', String(highScore));
-        }
+        saveHighScore(score);
       }
 
       // Raven gallops FORWARD — her screen X actually increases!
@@ -3321,10 +3346,7 @@
         for (const obs of obstacles) {
           if (checkCollision(obs)) {
             state = 'dead'; stateTime = Date.now();
-            if (score > highScore) {
-              highScore = score;
-              localStorage.setItem('ravenHighScore', String(highScore));
-            }
+            saveHighScore(score);
             break;
           }
         }
@@ -3332,19 +3354,13 @@
         // Lava collision (level 4)
         if ((LEVELS[level].hazard === 'lava' || LEVELS[level].hazard === 'both') && state === 'playing' && checkLavaCollision()) {
           state = 'dead'; stateTime = Date.now();
-          if (score > highScore) {
-            highScore = score;
-            localStorage.setItem('ravenHighScore', String(highScore));
-          }
+          saveHighScore(score);
         }
 
         // Rolling boulder collision (level 3)
         if ((LEVELS[level].hazard === 'boulders' || LEVELS[level].hazard === 'both') && state === 'playing' && checkBoulderCollision()) {
           state = 'dead'; stateTime = Date.now();
-          if (score > highScore) {
-            highScore = score;
-            localStorage.setItem('ravenHighScore', String(highScore));
-          }
+          saveHighScore(score);
         }
       }
 
@@ -3361,10 +3377,7 @@
       // Car collision — skip near finish
       if (!nearFinish && LEVELS[level].hazard === 'cars' && state === 'playing' && checkCarCollision()) {
         state = 'dead'; stateTime = Date.now();
-        if (score > highScore) {
-          highScore = score;
-          localStorage.setItem('ravenHighScore', String(highScore));
-        }
+        saveHighScore(score);
       }
 
     }
@@ -3489,7 +3502,7 @@
       );
     }
     if (state === 'dead') {
-      const isNew = score > highScore;
+      const isNew = justSetHighScore;
       drawOverlay(
         isNew
           ? ['\uD83C\uDFC6  New High Score!', '\uD83C\uDF4E Apples: ' + score, 'Press SPACE to continue']
