@@ -365,30 +365,82 @@
   let highScoreName = 'Margot';
   const HIGHSCORE_BLOB = 'https://jsonblob.com/api/jsonBlob/019d0e53-d7bc-751f-b65b-97470e6369ab';
 
-  // Fetch shared high score from online storage
+  // Leaderboard
+  let leaderboard = [];
+  const MAX_LEADERBOARD = 10;
+  const SHOW_LEADERBOARD = 5;
+  let showLeaderboard = false;
+  let lastLeaderboardEntry = null;
+  let leaderboardBtnBounds = null; // {x, y, w, h} for tap detection
+
+  // Fetch leaderboard from online storage (handles old + new format)
   fetch(HIGHSCORE_BLOB)
     .then(r => r.json())
     .then(data => {
-      if (data.highScore > 0) { highScore = data.highScore; highScoreName = data.name || '???'; }
+      if (data.leaderboard && Array.isArray(data.leaderboard)) {
+        leaderboard = data.leaderboard.slice(0, MAX_LEADERBOARD);
+      } else if (data.highScore > 0) {
+        leaderboard = [{ name: data.name || '???', score: data.highScore, date: '' }];
+      }
+      leaderboard = leaderboard.filter(e => e && typeof e.score === 'number' && typeof e.name === 'string');
+      if (leaderboard.length > 0) {
+        highScore = leaderboard[0].score;
+        highScoreName = leaderboard[0].name;
+      }
     })
-    .catch(() => {}); // if offline, use defaults
+    .catch(() => {});
 
   let justSetHighScore = false;
 
-  function saveHighScore(newScore) {
-    if (newScore <= highScore) return;
+  function saveToLeaderboard(newScore) {
+    const qualifies = leaderboard.length < MAX_LEADERBOARD ||
+      newScore > leaderboard[leaderboard.length - 1].score;
+    if (!qualifies) return;
     justSetHighScore = true;
-    // Prompt for name
-    const name = prompt('New High Score! Enter your name:');
+    const name = prompt('You made the leaderboard! Enter your name:');
     if (!name) { justSetHighScore = false; return; }
-    highScore = newScore;
-    highScoreName = name.trim().slice(0, 15);
-    // Save online
-    fetch(HIGHSCORE_BLOB, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ highScore, name: highScoreName })
-    }).catch(() => {});
+    const cleanName = name.trim().slice(0, 15);
+    const entry = { name: cleanName, score: newScore, date: new Date().toISOString().slice(0, 10) };
+
+    // Fetch-merge-save to reduce race conditions
+    fetch(HIGHSCORE_BLOB)
+      .then(r => r.json())
+      .then(data => {
+        let current = [];
+        if (data.leaderboard && Array.isArray(data.leaderboard)) {
+          current = data.leaderboard;
+        } else if (data.highScore > 0) {
+          current = [{ name: data.name || '???', score: data.highScore, date: '' }];
+        }
+        current.push(entry);
+        current.sort((a, b) => b.score - a.score);
+        current = current.slice(0, MAX_LEADERBOARD);
+        return fetch(HIGHSCORE_BLOB, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ leaderboard: current })
+        }).then(() => current);
+      })
+      .then(updated => {
+        leaderboard = updated;
+        if (leaderboard.length > 0) {
+          highScore = leaderboard[0].score;
+          highScoreName = leaderboard[0].name;
+        }
+        lastLeaderboardEntry = { name: cleanName, score: newScore };
+        justSetHighScore = (leaderboard[0].name === cleanName && leaderboard[0].score === newScore);
+      })
+      .catch(() => {
+        // Offline fallback: update local leaderboard
+        leaderboard.push(entry);
+        leaderboard.sort((a, b) => b.score - a.score);
+        leaderboard = leaderboard.slice(0, MAX_LEADERBOARD);
+        if (leaderboard.length > 0) {
+          highScore = leaderboard[0].score;
+          highScoreName = leaderboard[0].name;
+        }
+        lastLeaderboardEntry = { name: cleanName, score: newScore };
+      });
   }
   let obstacles = [], nextObsIn = 90;
   let apples = [], nextAppleIn = 30;
@@ -433,7 +485,7 @@
     gallopAudio.pause(); gallopPlaying = false;
     obstacles = []; trees = []; dust = []; apples = []; collectFx = []; confetti = []; lavaFlows = []; nextLavaIn = 0; rollingBoulders = []; nextBoulderIn = 0; hazardCars = []; nextCarIn = 0; snowSink = 0; snowSinkV = 0; wasInAir = false; snowBursts = [];
     const lv = LEVELS[level];
-    score = 0; speed = lv.speed; frame = 0; justSetHighScore = false;
+    score = 0; speed = lv.speed; frame = 0; justSetHighScore = false; showLeaderboard = false;
     nextObsIn = lv.obsInterval; nextTreeIn = 0; nextAppleIn = lv.appleInterval;
     appleLane = 0; appleGroupsOnLane = 0;
     worldOffset = 0; hsx = 200; cameraSpeed = 0;
@@ -502,6 +554,10 @@
       horse.rearing = true; horse.rearT = 0;
       neighAudio.currentTime = 0; neighAudio.play().catch(()=>{});
     }
+    // L key = toggle leaderboard on non-playing screens
+    if (e.code === 'KeyL' && (state === 'waiting' || state === 'dead' || state === 'won')) {
+      showLeaderboard = !showLeaderboard;
+    }
   });
 
   // ── Touch Controls ──────────────────────────────────────────────────────
@@ -519,6 +575,21 @@
     [gallopAudio, neighAudio, crunchAudio].forEach(a => {
       a.play().then(() => { a.pause(); a.currentTime = 0; }).catch(() => {});
     });
+  }
+
+  function canvasCoords(clientX, clientY) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: (clientX - rect.left) * (W / rect.width),
+      y: (clientY - rect.top) * (H / rect.height)
+    };
+  }
+
+  function hitLeaderboardBtn(clientX, clientY) {
+    if (!leaderboardBtnBounds) return false;
+    const p = canvasCoords(clientX, clientY);
+    const b = leaderboardBtnBounds;
+    return p.x >= b.x && p.x <= b.x + b.w && p.y >= b.y && p.y <= b.y + b.h;
   }
 
   function doJumpOrStart() {
@@ -547,6 +618,12 @@
     touchStartY = t.clientY;
     touchStartTime = Date.now();
     touchActive = true;
+
+    // Leaderboard tap handling (non-playing screens)
+    if (state === 'waiting' || state === 'dead' || state === 'won') {
+      if (showLeaderboard) { showLeaderboard = false; return; }
+      if (hitLeaderboardBtn(t.clientX, t.clientY)) { showLeaderboard = true; return; }
+    }
 
     // Double-tap detection for rear
     const now = Date.now();
@@ -594,8 +671,12 @@
   }, { passive: false });
 
   // Keep click for desktop mouse users
-  canvas.addEventListener('click', () => {
+  canvas.addEventListener('click', (e) => {
     if (isMobile) return; // touch handles it
+    if (state === 'waiting' || state === 'dead' || state === 'won') {
+      if (showLeaderboard) { showLeaderboard = false; return; }
+      if (hitLeaderboardBtn(e.clientX, e.clientY)) { showLeaderboard = true; return; }
+    }
     doJumpOrStart();
   });
 
@@ -3118,6 +3199,113 @@
     ctx.textAlign = 'left';
   }
 
+  // ── Leaderboard UI ────────────────────────────────────────────────────────
+
+  function drawLeaderboardButton() {
+    const bw = 150, bh = 34;
+    const bx = W/2 - bw/2, by = 290;
+    leaderboardBtnBounds = { x: bx, y: by, w: bw, h: bh };
+
+    // Button background
+    ctx.fillStyle = 'rgba(20,15,10,0.65)';
+    ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, 8); ctx.fill();
+    // Golden border
+    ctx.strokeStyle = '#d4a020'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, 8); ctx.stroke();
+    // Text
+    ctx.fillStyle = '#ffe87a'; ctx.font = 'bold 15px Arial'; ctx.textAlign = 'center';
+    ctx.fillText('\uD83C\uDFC6 Leaderboard', W/2, by + 22);
+    // Hint
+    ctx.fillStyle = 'rgba(255,255,255,0.35)'; ctx.font = '11px Arial';
+    ctx.fillText('press L', W/2, by + bh + 14);
+    ctx.textAlign = 'left';
+  }
+
+  function drawLeaderboard() {
+    const count = Math.min(SHOW_LEADERBOARD, leaderboard.length);
+    const rowH = 34;
+    const panelW = 360, panelH = 60 + count * rowH + (count === 0 ? 40 : 30);
+    const px = W/2 - panelW/2, py = H/2 - panelH/2;
+    const medals = ['\uD83E\uDD47', '\uD83E\uDD48', '\uD83E\uDD49'];
+    const rankColors = ['#ffd700', '#c0c0c0', '#cd7f32', '#ffe87a', '#ffe87a'];
+
+    // Dim background
+    ctx.fillStyle = 'rgba(0,0,10,0.7)';
+    ctx.fillRect(0, 0, W, H);
+
+    // Panel
+    ctx.fillStyle = 'rgba(15,10,25,0.92)';
+    ctx.beginPath(); ctx.roundRect(px, py, panelW, panelH, 14); ctx.fill();
+    // Golden border
+    ctx.strokeStyle = '#d4a020'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.roundRect(px, py, panelW, panelH, 14); ctx.stroke();
+    // Inner glow
+    ctx.strokeStyle = 'rgba(255,220,100,0.15)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.roundRect(px + 3, py + 3, panelW - 6, panelH - 6, 12); ctx.stroke();
+
+    // Title
+    ctx.fillStyle = '#ffe87a'; ctx.font = 'bold 24px Arial'; ctx.textAlign = 'center';
+    ctx.fillText('\uD83C\uDFC6 Leaderboard', W/2, py + 34);
+
+    if (count === 0) {
+      ctx.fillStyle = '#aaa'; ctx.font = '16px Arial';
+      ctx.fillText('No scores yet \u2014 be the first!', W/2, py + 75);
+    } else {
+      for (let i = 0; i < count; i++) {
+        const entry = leaderboard[i];
+        const ry = py + 52 + i * rowH;
+
+        // Highlight current player's entry
+        const isMe = lastLeaderboardEntry &&
+          entry.name === lastLeaderboardEntry.name &&
+          entry.score === lastLeaderboardEntry.score;
+        if (isMe) {
+          ctx.fillStyle = 'rgba(255,220,100,0.12)';
+          ctx.beginPath(); ctx.roundRect(px + 8, ry - 2, panelW - 16, rowH - 2, 6); ctx.fill();
+          // Glow border
+          ctx.strokeStyle = 'rgba(255,220,100,0.3)'; ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.roundRect(px + 8, ry - 2, panelW - 16, rowH - 2, 6); ctx.stroke();
+        }
+
+        // Rank (medal or number)
+        ctx.textAlign = 'left';
+        if (i < 3) {
+          ctx.font = '20px Arial';
+          ctx.fillText(medals[i], px + 18, ry + 22);
+        } else {
+          ctx.fillStyle = rankColors[i] || '#ffe87a';
+          ctx.font = 'bold 16px Arial';
+          ctx.fillText((i + 1) + '.', px + 20, ry + 20);
+        }
+
+        // Name
+        ctx.fillStyle = isMe ? '#fff' : '#ddd';
+        ctx.font = isMe ? 'bold 17px Arial' : '17px Arial';
+        ctx.fillText(entry.name, px + 55, ry + 20);
+
+        // Score
+        ctx.fillStyle = '#ffe87a'; ctx.font = 'bold 16px Arial'; ctx.textAlign = 'right';
+        ctx.fillText('\uD83C\uDF4E ' + entry.score, px + panelW - 20, ry + 20);
+      }
+    }
+
+    // Motivational text
+    if (lastLeaderboardEntry && count > 0) {
+      const myIdx = leaderboard.findIndex(e =>
+        e.name === lastLeaderboardEntry.name && e.score === lastLeaderboardEntry.score);
+      if (myIdx > 0) {
+        const diff = leaderboard[myIdx - 1].score - lastLeaderboardEntry.score;
+        ctx.fillStyle = '#88ffaa'; ctx.font = '13px Arial'; ctx.textAlign = 'center';
+        ctx.fillText(diff + ' more apple' + (diff !== 1 ? 's' : '') + ' to reach #' + myIdx + '!', W/2, py + panelH - 12);
+      }
+    }
+
+    // Close hint
+    ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.font = '12px Arial'; ctx.textAlign = 'center';
+    ctx.fillText('Press L or tap to close', W/2, py + panelH + 16);
+    ctx.textAlign = 'left';
+  }
+
   // ── Collision ──────────────────────────────────────────────────────────────
 
   function checkCollision(obs) {
@@ -3232,7 +3420,7 @@
         horse.jumpPhase = 'none'; horse.jumpT = 0;
         gallopAudio.pause(); gallopPlaying = false;
         neighAudio.currentTime = 0; neighAudio.play().catch(()=>{});
-        saveHighScore(score);
+        saveToLeaderboard(score);
       }
 
       // Raven gallops FORWARD — her screen X actually increases!
@@ -3419,7 +3607,8 @@
         for (const obs of obstacles) {
           if (checkCollision(obs)) {
             state = 'dead'; stateTime = Date.now();
-            saveHighScore(score);
+            gallopAudio.pause(); gallopPlaying = false;
+            saveToLeaderboard(score);
             break;
           }
         }
@@ -3427,13 +3616,15 @@
         // Lava collision (level 4)
         if ((LEVELS[level].hazard === 'lava' || LEVELS[level].hazard === 'both') && state === 'playing' && checkLavaCollision()) {
           state = 'dead'; stateTime = Date.now();
-          saveHighScore(score);
+          gallopAudio.pause(); gallopPlaying = false;
+          saveToLeaderboard(score);
         }
 
         // Rolling boulder collision (level 3)
         if ((LEVELS[level].hazard === 'boulders' || LEVELS[level].hazard === 'both') && state === 'playing' && checkBoulderCollision()) {
           state = 'dead'; stateTime = Date.now();
-          saveHighScore(score);
+          gallopAudio.pause(); gallopPlaying = false;
+          saveToLeaderboard(score);
         }
       }
 
@@ -3450,7 +3641,8 @@
       // Car collision — skip near finish
       if (!nearFinish && LEVELS[level].hazard === 'cars' && state === 'playing' && checkCarCollision()) {
         state = 'dead'; stateTime = Date.now();
-        saveHighScore(score);
+        gallopAudio.pause(); gallopPlaying = false;
+        saveToLeaderboard(score);
       }
 
     }
@@ -3598,6 +3790,14 @@
           ['#ffe87a', '#88ffaa', '#cccccc']
         );
       }
+    }
+
+    // Leaderboard button + panel
+    if (!showLeaderboard && (state === 'waiting' || state === 'dead' || state === 'won')) {
+      drawLeaderboardButton();
+    }
+    if (showLeaderboard && (state === 'waiting' || state === 'dead' || state === 'won')) {
+      drawLeaderboard();
     }
 
     requestAnimationFrame(gameLoop);
