@@ -3420,6 +3420,7 @@
         horse.jumpPhase = 'none'; horse.jumpT = 0;
         gallopAudio.pause(); gallopPlaying = false;
         neighAudio.currentTime = 0; neighAudio.play().catch(()=>{});
+        saveToLeaderboard(score);
       }
 
       // Raven gallops FORWARD — her screen X actually increases!
@@ -3789,6 +3790,14 @@
           ['#ffe87a', '#88ffaa', '#cccccc']
         );
       }
+    }
+
+    // Leaderboard button + panel
+    if (!showLeaderboard && (state === 'waiting' || state === 'dead' || state === 'won')) {
+      drawLeaderboardButton();
+    }
+    if (showLeaderboard && (state === 'waiting' || state === 'dead' || state === 'won')) {
+      drawLeaderboard();
     }
 
     requestAnimationFrame(gameLoop);
