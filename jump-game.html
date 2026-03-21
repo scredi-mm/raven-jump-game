@@ -361,7 +361,7 @@
          cloudAlpha: 0.15, theme: 'New York City', hazard: 'cars', obstacleTheme: 'city' },
   };
   let score = 0, speed = 3, frame = 0;
-  let highScore = 10;
+  let highScore = 112;
   let highScoreName = 'Margot';
   const HIGHSCORE_BLOB = 'https://jsonblob.com/api/jsonBlob/019d0e53-d7bc-751f-b65b-97470e6369ab';
 
@@ -2965,15 +2965,88 @@
   // ── HUD ───────────────────────────────────────────────────────────────────
 
   function drawHUD() {
-    // High score box (top right, wider to fit name + both scores)
-    ctx.fillStyle = 'rgba(0,0,0,0.4)';
-    ctx.beginPath(); ctx.roundRect(W-310, 12, 298, 38, 8); ctx.fill();
-    // High score label + value + name
-    ctx.fillStyle = '#aab8cc'; ctx.font = '13px Arial'; ctx.textAlign = 'right';
+    const boxX = W-310, boxY = 10, boxW = 298, boxH = 42;
+
+    // --- Vines curling around the high score box ---
+    ctx.save();
+    ctx.strokeStyle = '#3a8a3a'; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+    // Left vine curling up and over
+    ctx.beginPath();
+    ctx.moveTo(boxX - 12, boxY + boxH + 5);
+    ctx.bezierCurveTo(boxX - 14, boxY + 10, boxX - 4, boxY - 8, boxX + 30, boxY - 5);
+    ctx.stroke();
+    // Right vine curling down
+    ctx.beginPath();
+    ctx.moveTo(boxX + boxW + 12, boxY - 3);
+    ctx.bezierCurveTo(boxX + boxW + 10, boxY + 15, boxX + boxW + 5, boxY + boxH, boxX + boxW - 20, boxY + boxH + 6);
+    ctx.stroke();
+    // Small tendril off left vine
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(boxX - 8, boxY + 18);
+    ctx.bezierCurveTo(boxX - 18, boxY + 12, boxX - 20, boxY + 4, boxX - 14, boxY - 2);
+    ctx.stroke();
+    // Small tendril off right vine
+    ctx.beginPath();
+    ctx.moveTo(boxX + boxW + 8, boxY + 28);
+    ctx.bezierCurveTo(boxX + boxW + 18, boxY + 34, boxX + boxW + 16, boxY + boxH + 4, boxX + boxW + 8, boxY + boxH + 8);
+    ctx.stroke();
+
+    // Tiny leaves along vines
+    ctx.fillStyle = '#4aaa4a';
+    const leaves = [
+      [boxX - 10, boxY + 25, -0.4], [boxX - 6, boxY + 5, 0.6], [boxX + 15, boxY - 4, 0.3],
+      [boxX + boxW + 10, boxY + 8, -0.5], [boxX + boxW + 6, boxY + 38, 0.4], [boxX + boxW - 10, boxY + boxH + 5, -0.3]
+    ];
+    for (const [lx, ly, angle] of leaves) {
+      ctx.save(); ctx.translate(lx, ly); ctx.rotate(angle);
+      ctx.beginPath(); ctx.ellipse(0, 0, 5, 2.5, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    }
+
+    // Flowers at vine ends
+    const flowers = [
+      { x: boxX + 30, y: boxY - 5, color: '#ff6b8a', size: 4 },
+      { x: boxX - 14, y: boxY - 2, color: '#ffaa44', size: 3.5 },
+      { x: boxX + boxW - 20, y: boxY + boxH + 6, color: '#cc66ff', size: 4 },
+      { x: boxX + boxW + 8, y: boxY + boxH + 8, color: '#ff6b8a', size: 3.5 },
+    ];
+    for (const f of flowers) {
+      // Petals
+      ctx.fillStyle = f.color;
+      for (let p = 0; p < 5; p++) {
+        const a = (p / 5) * Math.PI * 2;
+        ctx.beginPath();
+        ctx.ellipse(f.x + Math.cos(a) * f.size * 0.7, f.y + Math.sin(a) * f.size * 0.7, f.size, f.size * 0.5, a, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      // Center
+      ctx.fillStyle = '#ffe040';
+      ctx.beginPath(); ctx.arc(f.x, f.y, f.size * 0.4, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.restore();
+
+    // --- Box with golden border ---
+    // Shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.beginPath(); ctx.roundRect(boxX + 2, boxY + 2, boxW, boxH, 10); ctx.fill();
+    // Background
+    ctx.fillStyle = 'rgba(20,15,10,0.55)';
+    ctx.beginPath(); ctx.roundRect(boxX, boxY, boxW, boxH, 10); ctx.fill();
+    // Golden border
+    ctx.strokeStyle = '#d4a020'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.roundRect(boxX, boxY, boxW, boxH, 10); ctx.stroke();
+    // Inner glow
+    ctx.strokeStyle = 'rgba(255,220,100,0.2)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.roundRect(boxX + 2, boxY + 2, boxW - 4, boxH - 4, 8); ctx.stroke();
+
+    // --- Text ---
+    // High score + name
+    ctx.fillStyle = '#e8c84a'; ctx.font = 'bold 13px Arial'; ctx.textAlign = 'right';
     ctx.fillText(highScoreName + ': ' + Math.floor(highScore), W-158, 36);
     // Divider
-    ctx.fillStyle = 'rgba(255,255,255,0.25)';
-    ctx.fillRect(W-152, 18, 1, 26);
+    ctx.fillStyle = 'rgba(212,160,32,0.4)';
+    ctx.fillRect(W-152, boxY + 6, 1, boxH - 12);
     // Current score
     ctx.fillStyle = '#fff'; ctx.font = 'bold 20px Arial'; ctx.textAlign = 'right';
     ctx.fillText('\uD83C\uDF4E ' + score, W-20, 38); ctx.textAlign = 'left';
