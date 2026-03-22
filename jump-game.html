@@ -374,7 +374,7 @@
   let leaderboardBtnBounds = null; // {x, y, w, h} for tap detection
 
   // Fetch leaderboard from online storage (handles old + new format)
-  fetch(HIGHSCORE_BLOB)
+  fetch(HIGHSCORE_BLOB, { cache: 'no-store' })
     .then(r => r.json())
     .then(data => {
       if (data.leaderboard && Array.isArray(data.leaderboard)) {
@@ -390,6 +390,24 @@
     })
     .catch(() => {});
 
+  function refreshLeaderboard() {
+    fetch(HIGHSCORE_BLOB, { cache: 'no-store' })
+      .then(r => r.json())
+      .then(data => {
+        if (data.leaderboard && Array.isArray(data.leaderboard)) {
+          leaderboard = data.leaderboard.slice(0, MAX_LEADERBOARD);
+        } else if (data.highScore > 0) {
+          leaderboard = [{ name: data.name || '???', score: data.highScore, date: '' }];
+        }
+        leaderboard = leaderboard.filter(e => e && typeof e.score === 'number' && typeof e.name === 'string');
+        if (leaderboard.length > 0) {
+          highScore = leaderboard[0].score;
+          highScoreName = leaderboard[0].name;
+        }
+      })
+      .catch(() => {});
+  }
+
   let justSetHighScore = false;
 
   function saveToLeaderboard(newScore) {
@@ -403,7 +421,7 @@
     const entry = { name: cleanName, score: newScore, date: new Date().toISOString().slice(0, 10) };
 
     // Fetch-merge-save to reduce race conditions
-    fetch(HIGHSCORE_BLOB)
+    fetch(HIGHSCORE_BLOB, { cache: 'no-store' })
       .then(r => r.json())
       .then(data => {
         let current = [];
@@ -557,6 +575,7 @@
     // L key = toggle leaderboard on non-playing screens
     if (e.code === 'KeyL' && (state === 'waiting' || state === 'dead' || state === 'won')) {
       showLeaderboard = !showLeaderboard;
+      if (showLeaderboard) refreshLeaderboard();
     }
   });
 
@@ -622,7 +641,7 @@
     // Leaderboard tap handling (non-playing screens)
     if (state === 'waiting' || state === 'dead' || state === 'won') {
       if (showLeaderboard) { showLeaderboard = false; return; }
-      if (hitLeaderboardBtn(t.clientX, t.clientY)) { showLeaderboard = true; return; }
+      if (hitLeaderboardBtn(t.clientX, t.clientY)) { showLeaderboard = true; refreshLeaderboard(); return; }
     }
 
     // Double-tap detection for rear
@@ -675,7 +694,7 @@
     if (isMobile) return; // touch handles it
     if (state === 'waiting' || state === 'dead' || state === 'won') {
       if (showLeaderboard) { showLeaderboard = false; return; }
-      if (hitLeaderboardBtn(e.clientX, e.clientY)) { showLeaderboard = true; return; }
+      if (hitLeaderboardBtn(e.clientX, e.clientY)) { showLeaderboard = true; refreshLeaderboard(); return; }
     }
     doJumpOrStart();
   });
