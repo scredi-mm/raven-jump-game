@@ -367,7 +367,7 @@
 
   // Leaderboard
   let leaderboard = [];
-  const MAX_LEADERBOARD = 10;
+  const MAX_LEADERBOARD = 5;
   const SHOW_LEADERBOARD = 5;
   let showLeaderboard = false;
   let lastLeaderboardEntry = null;
@@ -422,6 +422,7 @@
   let justSetHighScore = false;
 
   function saveToLeaderboard(newScore) {
+    if (newScore <= 0) return;
     const qualifies = leaderboard.length < MAX_LEADERBOARD ||
       newScore > leaderboard[leaderboard.length - 1].score;
     if (!qualifies) return;
