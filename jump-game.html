@@ -363,7 +363,7 @@
   let score = 0, speed = 3, frame = 0;
   let highScore = 10;
   let highScoreName = 'Margot';
-  const HIGHSCORE_BLOB = 'https://jsonblob.com/api/jsonBlob/019d0e53-d7bc-751f-b65b-97470e6369ab';
+  const HIGHSCORE_BLOB = 'https://jsonblob.com/api/jsonBlob/019d139b-bf4f-7b1a-95cb-6aabdef379ff';
 
   // Leaderboard
   let leaderboard = [];
@@ -373,37 +373,48 @@
   let lastLeaderboardEntry = null;
   let leaderboardBtnBounds = null; // {x, y, w, h} for tap detection
 
-  // Fetch leaderboard from online storage (handles old + new format)
+  // Parse leaderboard data from any format (online or localStorage)
+  function parseLeaderboardData(data) {
+    let entries = [];
+    if (data.leaderboard && Array.isArray(data.leaderboard)) {
+      entries = data.leaderboard.slice(0, MAX_LEADERBOARD);
+    } else if (data.highScore > 0) {
+      entries = [{ name: data.name || '???', score: data.highScore, date: '' }];
+    }
+    return entries.filter(e => e && typeof e.score === 'number' && typeof e.name === 'string');
+  }
+
+  function applyLeaderboard(entries) {
+    leaderboard = entries;
+    if (leaderboard.length > 0) {
+      highScore = leaderboard[0].score;
+      highScoreName = leaderboard[0].name;
+    }
+    // Always backup to localStorage
+    try { localStorage.setItem('spiritLeaderboard', JSON.stringify({ leaderboard })); } catch(e) {}
+  }
+
+  // Load from localStorage first (instant), then update from online
+  try {
+    const local = JSON.parse(localStorage.getItem('spiritLeaderboard') || '{}');
+    applyLeaderboard(parseLeaderboardData(local));
+  } catch(e) {}
+
+  // Fetch from online storage and merge (online wins if it has data)
   fetch(HIGHSCORE_BLOB, { cache: 'no-store' })
-    .then(r => r.json())
+    .then(r => { if (!r.ok) throw new Error('Blob not found'); return r.json(); })
     .then(data => {
-      if (data.leaderboard && Array.isArray(data.leaderboard)) {
-        leaderboard = data.leaderboard.slice(0, MAX_LEADERBOARD);
-      } else if (data.highScore > 0) {
-        leaderboard = [{ name: data.name || '???', score: data.highScore, date: '' }];
-      }
-      leaderboard = leaderboard.filter(e => e && typeof e.score === 'number' && typeof e.name === 'string');
-      if (leaderboard.length > 0) {
-        highScore = leaderboard[0].score;
-        highScoreName = leaderboard[0].name;
-      }
+      const entries = parseLeaderboardData(data);
+      if (entries.length > 0) applyLeaderboard(entries);
     })
-    .catch(() => {});
+    .catch(() => {}); // offline or blob expired — localStorage backup is already loaded
 
   function refreshLeaderboard() {
     fetch(HIGHSCORE_BLOB, { cache: 'no-store' })
-      .then(r => r.json())
+      .then(r => { if (!r.ok) throw new Error('Blob not found'); return r.json(); })
       .then(data => {
-        if (data.leaderboard && Array.isArray(data.leaderboard)) {
-          leaderboard = data.leaderboard.slice(0, MAX_LEADERBOARD);
-        } else if (data.highScore > 0) {
-          leaderboard = [{ name: data.name || '???', score: data.highScore, date: '' }];
-        }
-        leaderboard = leaderboard.filter(e => e && typeof e.score === 'number' && typeof e.name === 'string');
-        if (leaderboard.length > 0) {
-          highScore = leaderboard[0].score;
-          highScoreName = leaderboard[0].name;
-        }
+        const entries = parseLeaderboardData(data);
+        if (entries.length > 0) applyLeaderboard(entries);
       })
       .catch(() => {});
   }
@@ -422,14 +433,9 @@
 
     // Fetch-merge-save to reduce race conditions
     fetch(HIGHSCORE_BLOB, { cache: 'no-store' })
-      .then(r => r.json())
+      .then(r => { if (!r.ok) throw new Error('Blob not found'); return r.json(); })
       .then(data => {
-        let current = [];
-        if (data.leaderboard && Array.isArray(data.leaderboard)) {
-          current = data.leaderboard;
-        } else if (data.highScore > 0) {
-          current = [{ name: data.name || '???', score: data.highScore, date: '' }];
-        }
+        let current = parseLeaderboardData(data);
         current.push(entry);
         current.sort((a, b) => b.score - a.score);
         current = current.slice(0, MAX_LEADERBOARD);
@@ -440,23 +446,15 @@
         }).then(() => current);
       })
       .then(updated => {
-        leaderboard = updated;
-        if (leaderboard.length > 0) {
-          highScore = leaderboard[0].score;
-          highScoreName = leaderboard[0].name;
-        }
+        applyLeaderboard(updated);
         lastLeaderboardEntry = { name: cleanName, score: newScore };
         justSetHighScore = (leaderboard[0].name === cleanName && leaderboard[0].score === newScore);
       })
       .catch(() => {
-        // Offline fallback: update local leaderboard
+        // Offline/expired fallback: update locally and save to localStorage
         leaderboard.push(entry);
         leaderboard.sort((a, b) => b.score - a.score);
-        leaderboard = leaderboard.slice(0, MAX_LEADERBOARD);
-        if (leaderboard.length > 0) {
-          highScore = leaderboard[0].score;
-          highScoreName = leaderboard[0].name;
-        }
+        applyLeaderboard(leaderboard.slice(0, MAX_LEADERBOARD));
         lastLeaderboardEntry = { name: cleanName, score: newScore };
       });
   }
